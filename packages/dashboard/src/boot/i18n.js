@@ -1,6 +1,6 @@
+import { boot } from "quasar/wrappers";
 import enUS from "quasar/lang/en-US";
 import zhCN from "quasar/lang/zh-CN";
-import { boot } from "quasar/wrappers";
 import {
 	formatDate,
 	formatDateTime,

@@ -186,46 +186,45 @@ export default defineComponent({
 	computed: {
 		shareColumns: function () {
 			this.$locale.locale;
-			return [
-				{
+			return [{
 				name: "key",
 				label: this.$t("files"),
 				field: "key",
 				align: "left",
 				sortable: true,
-				},
-				{
+			},
+			{
 				name: "shareUrl",
 				label: this.$t("link"),
 				field: "shareUrl",
 				align: "left",
-				},
-				{
+			},
+			{
 				name: "status",
 				label: this.$t("status"),
 				field: "isExpired",
 				align: "center",
 				sortable: true,
-				},
-				{
+			},
+			{
 				name: "downloads",
 				label: this.$t("downloads"),
 				align: "center",
 				sortable: true,
-				},
-				{
+			},
+			{
 				name: "created",
 				label: this.$t("created"),
 				field: "createdAt",
 				align: "left",
 				sortable: true,
 				format: (val) => this.$formatDateTime(val),
-				},
-				{
+			},
+			{
 				name: "actions",
 				label: this.$t("actions"),
 				align: "center",
-				},
+			},
 			];
 		},
 		selectedBucket: function () {

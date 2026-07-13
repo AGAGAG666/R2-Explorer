@@ -139,10 +139,7 @@ export default {
 			const notif = this.q.notify({
 				group: false,
 				spinner: true,
-				message: this.$t("uploadingFiles", {
-					current: 1,
-					total: filenames.length,
-				}),
+				message: this.$t("uploadingFiles", { current: 1, total: filenames.length }),
 				caption: "0%",
 				timeout: 0,
 			});
@@ -165,10 +162,7 @@ export default {
 
 					// Update notification with current file count
 					notif({
-						message: this.$t("uploadingFiles", {
-							current: uploadCount,
-							total: filenames.length,
-						}),
+						message: this.$t("uploadingFiles", { current: uploadCount, total: filenames.length }),
 					});
 
 					const key = targetFolder + file.name;
