@@ -52,7 +52,9 @@ export async function getCachedThumbnail(key) {
 	if (cache.has(key)) return cache.get(key);
 	if (typeof caches === "undefined") return undefined;
 
-	const response = await (await caches.open(CACHE_NAME)).match(cacheRequest(key));
+	const response = await (await caches.open(CACHE_NAME)).match(
+		cacheRequest(key),
+	);
 	if (!response) return undefined;
 
 	const blob = await response.blob();

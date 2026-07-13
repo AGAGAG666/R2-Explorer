@@ -177,8 +177,8 @@
 
 <script>
 import FileOptions from "components/files/FileOptions.vue";
-import ShareFile from "components/files/ShareFile.vue";
 import FileThumbnail from "components/files/FileThumbnail.vue";
+import ShareFile from "components/files/ShareFile.vue";
 import FilePreview from "components/preview/FilePreview.vue";
 import DragAndDrop from "components/utils/DragAndDrop.vue";
 import FileContextMenu from "pages/files/FileContextMenu.vue";
@@ -332,13 +332,12 @@ export default defineComponent({
 				params: { bucket: this.selectedBucket },
 			});
 		},
-		isImage: function (row) {
-			return (
+		isImage: (row) =>
+			(
 				row.type === "file" &&
 				/\.(png|jpe?g|webp|avif)$/i.test(row.name)
-			);
-		},
-		saveViewMode: function (mode) {
+			),
+		saveViewMode: (mode) => {
 			localStorage.setItem("r2_explorer_view_mode", mode);
 		},
 		openRowClick: function (evt, row, index) {

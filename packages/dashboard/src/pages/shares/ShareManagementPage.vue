@@ -188,7 +188,9 @@ export default defineComponent({
 					this.organization,
 				);
 			} catch (error) {
-				const response = await apiHandler.getShareOrganization(this.selectedBucket);
+				const response = await apiHandler.getShareOrganization(
+					this.selectedBucket,
+				);
 				this.organization = response.data;
 				this.q.notify({ type: "negative", message: "保存分享分类失败" });
 				throw error;
@@ -231,7 +233,8 @@ export default defineComponent({
 		},
 		moveShare: async function () {
 			if (this.moveTarget) {
-				this.organization.assignments[this.movingShare.shareId] = this.moveTarget;
+				this.organization.assignments[this.movingShare.shareId] =
+					this.moveTarget;
 			} else {
 				delete this.organization.assignments[this.movingShare.shareId];
 			}

@@ -20,16 +20,16 @@ import { GetShareLink } from "./modules/buckets/getShareLink";
 import { HeadObject } from "./modules/buckets/headObject";
 import { ListObjects } from "./modules/buckets/listObjects";
 import { ListShares } from "./modules/buckets/listShares";
-import {
-	GetShareOrganization,
-	PutShareOrganization,
-} from "./modules/buckets/shareOrganization";
 import { MoveObject } from "./modules/buckets/moveObject";
 import { CompleteUpload } from "./modules/buckets/multipart/completeUpload";
 import { CreateUpload } from "./modules/buckets/multipart/createUpload";
 import { PartUpload } from "./modules/buckets/multipart/partUpload";
 import { PutMetadata } from "./modules/buckets/putMetadata";
 import { PutObject } from "./modules/buckets/putObject";
+import {
+	GetShareOrganization,
+	PutShareOrganization,
+} from "./modules/buckets/shareOrganization";
 import { dashboardIndex, dashboardRedirect } from "./modules/dashboard";
 import { receiveEmail } from "./modules/emails/receiveEmail";
 import { SendEmail } from "./modules/emails/sendEmail";
@@ -139,14 +139,8 @@ export function R2Explorer(config?: R2ExplorerConfig) {
 	// Share link routes
 	openapi.post("/api/buckets/:bucket/:key/share", CreateShareLink);
 	openapi.get("/api/buckets/:bucket/shares", ListShares);
-	openapi.get(
-		"/api/buckets/:bucket/share-organization",
-		GetShareOrganization,
-	);
-	openapi.put(
-		"/api/buckets/:bucket/share-organization",
-		PutShareOrganization,
-	);
+	openapi.get("/api/buckets/:bucket/share-organization", GetShareOrganization);
+	openapi.put("/api/buckets/:bucket/share-organization", PutShareOrganization);
 	openapi.delete("/api/buckets/:bucket/share/:shareId", DeleteShareLink);
 
 	// These object routes should be defined last

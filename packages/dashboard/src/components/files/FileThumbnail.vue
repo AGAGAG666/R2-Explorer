@@ -71,9 +71,13 @@ export default {
 				const cached = await getCachedThumbnail(this.cacheKey);
 				if (cached) return cached;
 
-				const response = await apiHandler.downloadFile(this.bucket, this.fileKey, {
-					downloadType: "objectUrl",
-				});
+				const response = await apiHandler.downloadFile(
+					this.bucket,
+					this.fileKey,
+					{
+						downloadType: "objectUrl",
+					},
+				);
 				const thumbnail = await this.createThumbnail(new Blob([response.data]));
 				await cacheThumbnail(this.cacheKey, thumbnail);
 				return thumbnail;
@@ -95,7 +99,7 @@ export default {
 				this.loading = false;
 			}
 		},
-		createThumbnail: async function (original) {
+		createThumbnail: async (original) => {
 			if (typeof createImageBitmap === "undefined") return original;
 
 			const bitmap = await createImageBitmap(original);
@@ -103,7 +107,9 @@ export default {
 			const canvas = document.createElement("canvas");
 			canvas.width = Math.max(1, Math.round(bitmap.width * scale));
 			canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-			canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+			canvas
+				.getContext("2d")
+				.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 			bitmap.close();
 
 			return await new Promise((resolve) => {
