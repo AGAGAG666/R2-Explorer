@@ -5,7 +5,7 @@
       <q-card-section class="bg-grey-2 text-black" vertical>
           <q-btn-group unelevated>
             <q-btn push icon="arrow_back" :to="{ name: `email-folder`, params: { bucket: $route.params.bucket, folder: $route.params.folder }}">
-              <q-tooltip>{{ $t('back') }}</q-tooltip>
+              <q-tooltip>Back</q-tooltip>
             </q-btn>
 <!--            <q-btn push icon="chevron_left">-->
 <!--              <q-tooltip>More recent</q-tooltip>-->
@@ -15,10 +15,10 @@
 <!--            </q-btn>-->
             <template v-if="fileHead">
               <q-btn push icon="mark_email_unread" @click="markAsUnread" v-if="fileHead.customMetadata.read === 'true'">
-                <q-tooltip>{{ $t('markUnread') }}</q-tooltip>
+                <q-tooltip>Mark email as unread</q-tooltip>
               </q-btn>
               <q-btn push icon="mark_email_read" @click="markAsRead" v-else>
-                <q-tooltip>{{ $t('markRead') }}</q-tooltip>
+                <q-tooltip>Mark email as read</q-tooltip>
               </q-btn>
             </template>
           </q-btn-group>
@@ -33,12 +33,12 @@
           <q-icon name="account_circle" size="xl" class="q-mr-sm"/>
           <div class="d-flex column">
             <span>{{ file.from.name }} <small class="text-muted">&lt;{{ file.from.address }}></small></span>
-            <span>{{ $t('toAddress', { address: file.to[0].address }) }}</span>
+            <span>to {{ file.to[0].address }}</span>
           </div>
         </div>
 
         <div class="q-ml-auto">
-          <small class="">{{ $formatDateTime(file.date) }} ({{timeSince(new Date(file.date))}})</small>
+          <small class="">{{ file.date }} ({{timeSince(new Date(file.date))}})</small>
         </div>
       </q-card-section>
 
@@ -58,7 +58,7 @@
 
       <q-card-actions vertical v-if="attachments.length > 0">
         <q-separator/>
-        <h6 class="q-my-md">{{ $t('attachments') }}</h6>
+        <h6 class="q-my-md">Attachments</h6>
 
         <div class="row attachments">
             <div v-for="attachment of file.attachments" class="col-md-4 col-sm-12" :key="attachment.filename">
@@ -233,7 +233,7 @@ export default defineComponent({
 				group: false,
 				icon: "done", // we add an icon
 				spinner: false, // we reset the spinner setting so the icon can be displayed
-				message: this.$t("emailMarkedUnread"),
+				message: "Email marked as unread!",
 				timeout: 2500, // we will timeout it in 2.5s
 			});
 		},
@@ -251,7 +251,7 @@ export default defineComponent({
 				group: false,
 				icon: "done", // we add an icon
 				spinner: false, // we reset the spinner setting so the icon can be displayed
-				message: this.$t("emailMarkedRead"),
+				message: "Email marked as read!",
 				timeout: 2500, // we will timeout it in 2.5s
 			});
 		},

@@ -78,12 +78,18 @@ preview_bucket_name = '${bucketName}'
   }
 }
 
+console.log(wranglerConfig);
 fs.writeFileSync(`${baseDir}/wrangler.toml`, wranglerConfig);
 
 if (!fs.existsSync(`${baseDir}/src/`)) {
 	fs.mkdirSync(`${baseDir}/src/`);
 }
 
+console.log(`
+import { R2Explorer } from "r2-explorer";
+
+export default R2Explorer(${R2EXPLORER_CONFIG});
+`);
 fs.writeFileSync(
 	`${baseDir}/src/index.ts`,
 	`

@@ -1,7 +1,6 @@
 import { beforeEach, vi } from "vitest";
 import { config } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import { formatDate, formatDateTime, localeState, setLocale, t } from "src/i18n";
 
 // Mock quasar — avoid importing the full framework, provide only what components need
 vi.mock("quasar", () => ({
@@ -95,11 +94,6 @@ config.global.directives = {
 
 // Provide a mock $bus (EventBus) for components that use this.$bus
 config.global.mocks = {
-	$t: t,
-	$locale: localeState,
-	$setLocale: setLocale,
-	$formatDate: formatDate,
-	$formatDateTime: formatDateTime,
 	$bus: {
 		emit: vi.fn(),
 		on: vi.fn(),

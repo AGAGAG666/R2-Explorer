@@ -12,8 +12,6 @@ export const useMainStore = defineStore("main", {
 
 		// Frontend data
 		buckets: [],
-		serverLoading: false,
-		serverError: null,
 	}),
 	getters: {
 		serverUrl() {
@@ -27,9 +25,6 @@ export const useMainStore = defineStore("main", {
 		async loadServerConfigs(router, q, handleError = false) {
 			// This is the initial requests to server, that also checks if user needs auth
 
-			this.serverLoading = true;
-			this.serverError = null;
-
 			try {
 				const response = await api.get("/server/config", {
 					validateStatus: (status) => status >= 200 && status < 300,
@@ -41,7 +36,6 @@ export const useMainStore = defineStore("main", {
 				this.version = response.data.version;
 				this.showHiddenFiles = response.data.config.showHiddenFiles;
 				this.buckets = response.data.buckets;
-				this.serverError = null;
 
 				const url = new URL(window.location.href);
 				if (url.searchParams.get("next")) {
@@ -56,19 +50,16 @@ export const useMainStore = defineStore("main", {
 				return true;
 			} catch (error) {
 				console.log(error);
-				const response = error.response;
-				this.serverError = response?.data || error.message || "Network error";
-
-				if (response?.status === 302) {
+				if (error.response.status === 302) {
 					// Handle cloudflare access login page
-					const nextUrl = response.headers.Location;
+					const nextUrl = error.response.headers.Location;
 					if (nextUrl) {
 						window.location.replace(nextUrl);
 					}
 				}
 
 				if (handleError) {
-					const respText = response?.data;
+					const respText = await error.response.data;
 					if (respText === "Authentication error: Basic Auth required") {
 						await router.push({
 							name: "login",
@@ -77,18 +68,14 @@ export const useMainStore = defineStore("main", {
 						return;
 					}
 
-					if (respText) {
-						q.notify({
-							type: "negative",
-							message: respText,
-							timeout: 10000,
-						});
-					}
+					q.notify({
+						type: "negative",
+						message: respText,
+						timeout: 10000, // we will timeout it in 10s
+					});
 				} else {
 					throw error;
 				}
-			} finally {
-				this.serverLoading = false;
 			}
 
 			return false;

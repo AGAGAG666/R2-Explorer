@@ -9,7 +9,7 @@
           dense
           outlined
           v-model="searchQuery"
-          :placeholder="$t('searchPrefix')"
+          placeholder="Search by prefix..."
           clearable
           class="q-mr-sm"
           style="width: 200px"
@@ -25,10 +25,10 @@
           dense
           icon="link"
           color="primary"
-          :label="$t('manageShares')"
+          label="Manage Shares"
           @click="$refs.shareFile.openManageShares()"
         >
-          <q-tooltip>{{ $t('manageSharesHint') }}</q-tooltip>
+          <q-tooltip>View and manage all share links</q-tooltip>
         </q-btn>
       </div>
 
@@ -62,7 +62,7 @@
 
           <template v-slot:no-data>
             <div class="full-width q-my-lg" v-if="!loading">
-              <h6 class="flex items-center justify-center"><q-icon name="folder" color="orange" size="lg" />{{ $t('emptyFolder') }}</h6>
+              <h6 class="flex items-center justify-center"><q-icon name="folder" color="orange" size="lg" />This folder is empty</h6>
             </div>
           </template>
 
@@ -98,11 +98,11 @@
 
         <div v-if="loadingMore" class="q-pa-md text-center">
           <q-spinner color="primary" size="md" />
-          <div class="q-mt-sm text-grey">{{ $t('loadingMoreFiles') }}</div>
+          <div class="q-mt-sm text-grey">Loading more files...</div>
         </div>
 
         <div v-if="!hasMore && rows.length > 0 && !loading" class="q-pa-md text-center text-grey">
-          {{ $t('noMoreFiles') }}
+          No more files to load
         </div>
 
       </drag-and-drop>
@@ -142,14 +142,11 @@ export default defineComponent({
 		cursor: null,
 		hasMore: true,
 		searchQuery: "",
-	}),
-	computed: {
-		columns: function () {
-			this.$locale.locale;
-			return [{
+		columns: [
+			{
 				name: "name",
 				required: true,
-				label: this.$t("name"),
+				label: "Name",
 				align: "left",
 				field: "name",
 				sortable: true,
@@ -173,7 +170,7 @@ export default defineComponent({
 			{
 				name: "lastModified",
 				required: true,
-				label: this.$t("lastModified"),
+				label: "Last Modified",
 				align: "left",
 				field: "lastModified",
 				sortable: true,
@@ -184,7 +181,7 @@ export default defineComponent({
 			{
 				name: "size",
 				required: true,
-				label: this.$t("size"),
+				label: "Size",
 				align: "left",
 				field: "size",
 				sortable: true,
@@ -197,8 +194,9 @@ export default defineComponent({
 				label: "",
 				sortable: false,
 			},
-			];
-		},
+		],
+	}),
+	computed: {
 		selectedBucket: function () {
 			return this.$route.params.bucket;
 		},

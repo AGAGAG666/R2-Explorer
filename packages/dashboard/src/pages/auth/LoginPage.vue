@@ -2,8 +2,8 @@
   <q-page class='flex flex-center'>
     <q-card class='q-pa-md shadow-2' bordered>
       <q-card-section class='text-center'>
-        <div class='text-grey-9 text-h5 text-weight-bold'>{{ $t('signIn') }}</div>
-        <div class='text-grey-8'>{{ $t('signInDescription') }}</div>
+        <div class='text-grey-9 text-h5 text-weight-bold'>Sign in</div>
+        <div class='text-grey-8'>Enter your email address and password to access admin panel.</div>
       </q-card-section>
 
       <q-card-section v-if='showError'>
@@ -20,7 +20,7 @@
           <q-input
             filled
             v-model="form.username"
-            :label="$t('username')"
+            label="Username"
             lazy-rules
             type='text'
           />
@@ -28,15 +28,15 @@
           <q-input
             filled
             v-model="form.password"
-            :label="$t('password')"
+            label="Password"
             lazy-rules
             type='password'
           />
 
-          <q-toggle v-model="form.remind" :label="$t('rememberMe')" />
+          <q-toggle v-model="form.remind" label="Remember me" />
 
           <div>
-            <q-btn :loading="loading" :label="$t('signIn')" type="submit" color="primary"/>
+            <q-btn :loading="loading" label="Sign in" type="submit" color="primary"/>
           </div>
         </q-form>
       </q-card-section>
@@ -70,9 +70,7 @@ export default defineComponent({
 				await authStore.LogIn(this.$router, this.form);
 				this.showError = "";
 			} catch (error) {
-				this.showError = error.message === "Invalid username or password"
-					? this.$t("invalidCredentials")
-					: error.message;
+				this.showError = error.message;
 				throw error;
 			} finally {
 				this.loading = false;

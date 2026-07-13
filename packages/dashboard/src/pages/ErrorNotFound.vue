@@ -6,7 +6,7 @@
       </div>
 
       <div class="text-h2" style="opacity:.4">
-        {{ $t('notFound') }}
+        Oops. Nothing here...
       </div>
 
       <q-btn
@@ -15,7 +15,7 @@
         text-color="blue"
         unelevated
         to="/"
-        :label="$t('goHome')"
+        label="Go Home"
         no-caps
       />
     </div>

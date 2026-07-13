@@ -1,5 +1,4 @@
 import { api } from "boot/axios";
-import { formatDate, formatRelativeTime, localeState } from "src/i18n";
 import { useMainStore } from "stores/main-store";
 
 export const ROOT_FOLDER = "IA=="; // IA== is a space
@@ -67,42 +66,41 @@ export const timeSince = (date) => {
 	let calc;
 
 	if (interval > 1) {
-		return formatDate(date);
+		// calc = Math.floor(interval)
+		// return calc + (calc === 1 ? ' year' : ' years')
+		return date.toLocaleDateString();
 	}
 	interval = seconds / 2592000;
 	if (interval > 1) {
 		// calc = Math.floor(interval)
 		// return calc + (calc === 1 ? ' month' : ' months')
-		return formatDate(date);
+		return date.toLocaleDateString();
 	}
 	interval = seconds / 86400;
 	if (interval > 1) {
 		// calc = Math.floor(interval)
 		// return calc + (calc === 1 ? ' day' : ' days')
-		return formatDate(date);
+		return date.toLocaleDateString();
 	}
 	interval = seconds / 3600;
 	if (interval > 1) {
 		calc = Math.floor(interval);
-		return formatRelativeTime(-calc, "hour");
+		return calc + (calc === 1 ? " hour" : " hours");
 	}
 	interval = seconds / 60;
 	if (interval > 1) {
 		calc = Math.floor(interval);
-		return formatRelativeTime(-calc, "minute");
+		return calc + (calc === 1 ? " minute" : " minutes");
 	}
 
 	calc = Math.floor(interval);
-	return formatRelativeTime(-calc, "second");
+	return calc + (calc === 1 ? " second" : " seconds");
 };
 export const bytesToSize = (bytes) => {
 	const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
 	if (bytes === 0) return "0 Byte";
 	const i = Number.parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-	const value = new Intl.NumberFormat(localeState.locale, {
-		maximumFractionDigits: 0,
-	}).format(Math.round(bytes / 1024 ** i));
-	return `${value} ${sizes[i]}`;
+	return `${Math.round(bytes / 1024 ** i, 2)} ${sizes[i]}`;
 };
 
 export const bytesToMegabytes = (bytes) => {

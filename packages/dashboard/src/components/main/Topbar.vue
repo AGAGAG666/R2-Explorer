@@ -1,5 +1,5 @@
 <template>
-  <q-btn dense flat round icon="menu" :aria-label="$t('new')" @click="$emit('toggle')" />
+  <q-btn dense flat round icon="menu" @click="$emit('toggle')" />
 
   <q-toolbar-title style="overflow: unset" class="text-bold">
     <q-avatar>
@@ -8,16 +8,6 @@
     R2-Explorer
   </q-toolbar-title>
   <q-space />
-  <q-btn-dropdown flat dense icon="language" :label="$t('language')" class="q-mr-sm">
-    <q-list>
-      <q-item clickable v-close-popup @click="$setLocale('zh-CN')">
-        <q-item-section>{{ $t('chinese') }}</q-item-section>
-      </q-item>
-      <q-item clickable v-close-popup @click="$setLocale('en-US')">
-        <q-item-section>{{ $t('english') }}</q-item-section>
-      </q-item>
-    </q-list>
-  </q-btn-dropdown>
   <div v-if="mainStore.buckets.length > 1">
     <bucket-picker/>
   </div>
