@@ -98,7 +98,9 @@ export class PutShareOrganization extends OpenAPIRoute {
 
 	async handle(c: AppContext) {
 		const data = await this.getValidatedData<typeof this.schema>();
-		const organization = organizationSchema.parse(data.body) as ShareOrganization;
+		const organization = organizationSchema.parse(
+			data.body,
+		) as ShareOrganization;
 		validateOrganization(organization);
 		await getBucket(c, data.params.bucket).put(
 			ORGANIZATION_KEY,
