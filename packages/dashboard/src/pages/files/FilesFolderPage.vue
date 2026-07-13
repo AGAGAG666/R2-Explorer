@@ -148,55 +148,55 @@ export default defineComponent({
 			this.$locale.locale;
 			return [
 				{
-				name: "name",
-				required: true,
-				label: this.$t("name"),
-				align: "left",
-				field: "name",
-				sortable: true,
-				sort: (a, b, rowA, rowB) => {
-					if (rowA.type === "folder") {
-						if (rowB.type === "folder") {
-							// both are folders
-							return a.localeCompare(b);
+					name: "name",
+					required: true,
+					label: this.$t("name"),
+					align: "left",
+					field: "name",
+					sortable: true,
+					sort: (a, b, rowA, rowB) => {
+						if (rowA.type === "folder") {
+							if (rowB.type === "folder") {
+								// both are folders
+								return a.localeCompare(b);
+							}
+							// only first is folder
+							return 1;
 						}
-						// only first is folder
-						return 1;
-					}
-					if (rowB.type === "folder") {
-						// only second is folder
-						return -1;
-					}
-					// none is folder
-					return a.localeCompare(b);
-				},
+						if (rowB.type === "folder") {
+							// only second is folder
+							return -1;
+						}
+						// none is folder
+						return a.localeCompare(b);
+					},
 				},
 				{
-				name: "lastModified",
-				required: true,
-				label: this.$t("lastModified"),
-				align: "left",
-				field: "lastModified",
-				sortable: true,
-				sort: (a, b, rowA, rowB) => {
-					return rowA.timestamp - rowB.timestamp;
-				},
-				},
-				{
-				name: "size",
-				required: true,
-				label: this.$t("size"),
-				align: "left",
-				field: "size",
-				sortable: true,
-				sort: (a, b, rowA, rowB) => {
-					return rowA.sizeRaw - rowB.sizeRaw;
-				},
+					name: "lastModified",
+					required: true,
+					label: this.$t("lastModified"),
+					align: "left",
+					field: "lastModified",
+					sortable: true,
+					sort: (a, b, rowA, rowB) => {
+						return rowA.timestamp - rowB.timestamp;
+					},
 				},
 				{
-				name: "options",
-				label: "",
-				sortable: false,
+					name: "size",
+					required: true,
+					label: this.$t("size"),
+					align: "left",
+					field: "size",
+					sortable: true,
+					sort: (a, b, rowA, rowB) => {
+						return rowA.sizeRaw - rowB.sizeRaw;
+					},
+				},
+				{
+					name: "options",
+					label: "",
+					sortable: false,
 				},
 			];
 		},
