@@ -39,6 +39,7 @@ async function mountPage(route = "/my-bucket/files") {
 		global: {
 			stubs: {
 				QTable: QTableStub,
+				QBtnToggle: true,
 				// Stub child components that have complex templates
 				FilePreview: { name: "FilePreview", template: "<div />", methods: { openFile: vi.fn() } },
 				FileContextMenu: true,
@@ -53,6 +54,7 @@ async function mountPage(route = "/my-bucket/files") {
 describe("FilesFolderPage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		localStorage.clear();
 		vi.mocked(apiHandler.fetchFilePage).mockResolvedValue({
 			files: [],
 			truncated: false,
@@ -128,6 +130,59 @@ describe("FilesFolderPage", () => {
 
 		const colNames = wrapper.vm.columns.map((c: any) => c.name);
 		expect(colNames).toEqual(["name", "lastModified", "size", "options"]);
+	});
+
+	it("switches to icon view and remembers the preference", async () => {
+		const wrapper = await mountPage();
+
+		wrapper.vm.viewMode = "grid";
+		wrapper.vm.saveViewMode("grid");
+		await wrapper.vm.$nextTick();
+
+		expect(localStorage.getItem("r2_explorer_view_mode")).toBe("grid");
+		expect(wrapper.find(".file-grid-empty").exists()).toBe(true);
+	});
+
+	it("restores the saved icon view preference", async () => {
+		localStorage.setItem("r2_explorer_view_mode", "grid");
+
+		const wrapper = await mountPage();
+
+		expect(wrapper.vm.viewMode).toBe("grid");
+	});
+
+	it("sorts folders before files in icon view", async () => {
+		const wrapper = await mountPage();
+		wrapper.vm.rows = [
+			{ name: "z-file.txt", key: "z-file.txt", type: "file" },
+			{ name: "B-folder/", key: "B-folder/", type: "folder" },
+			{ name: "a-folder/", key: "a-folder/", type: "folder" },
+			{ name: "a-file.txt", key: "a-file.txt", type: "file" },
+		];
+
+		expect(wrapper.vm.gridRows.map((row: any) => row.name)).toEqual([
+			"a-folder/",
+			"B-folder/",
+			"a-file.txt",
+			"z-file.txt",
+		]);
+	});
+
+	it("renders one icon tile per row", async () => {
+		vi.mocked(apiHandler.fetchFilePage).mockResolvedValue({
+			files: [
+				{ name: "photos/", key: "photos/", type: "folder", icon: "folder" },
+				{ name: "note.txt", key: "note.txt", type: "file", icon: "article", size: "1 KB" },
+			],
+			truncated: false,
+			cursor: null,
+		});
+		localStorage.setItem("r2_explorer_view_mode", "grid");
+
+		const wrapper = await mountPage();
+		await flushPromises();
+
+		expect(wrapper.findAll(".file-grid-item")).toHaveLength(2);
 	});
 
 	it("navigates to folder on openObject with folder", async () => {

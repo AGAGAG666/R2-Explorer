@@ -1,7 +1,7 @@
 <template>
   <q-page class="">
     <div class="q-pa-md" ref="pageContainer" @scroll="handleScroll" style="height: 100vh; overflow-y: auto;">
-      <div class="flex items-center q-mb-sm">
+      <div class="file-toolbar flex items-center q-mb-sm">
         <q-breadcrumbs class="col">
           <q-breadcrumbs-el style="cursor: pointer" v-for="obj in breadcrumbs" :key="obj.name" :label="obj.name" @click="breadcrumbsClick(obj)" />
         </q-breadcrumbs>
@@ -30,11 +30,33 @@
         >
           <q-tooltip>查看和管理所有分享链接</q-tooltip>
         </q-btn>
+        <q-separator vertical inset class="q-mx-sm" />
+        <q-btn-toggle
+          v-model="viewMode"
+          flat
+          dense
+          toggle-color="primary"
+          :options="[
+            { value: 'list', slot: 'list' },
+            { value: 'grid', slot: 'grid' }
+          ]"
+          @update:model-value="saveViewMode"
+        >
+          <template v-slot:list>
+            <q-icon name="view_list" />
+            <q-tooltip>列表视图</q-tooltip>
+          </template>
+          <template v-slot:grid>
+            <q-icon name="grid_view" />
+            <q-tooltip>图标视图</q-tooltip>
+          </template>
+        </q-btn-toggle>
       </div>
 
       <drag-and-drop ref="uploader">
 
         <q-table
+          v-show="viewMode === 'list'"
           ref="table"
           :rows="rows"
           :columns="columns"
@@ -96,6 +118,39 @@
           </template>
         </q-table>
 
+        <div v-if="viewMode === 'grid' && rows.length > 0" class="file-grid">
+          <div
+            v-for="row in gridRows"
+            :key="row.key"
+            class="file-grid-item"
+            tabindex="0"
+            @click="openRowDlbClick($event, row)"
+            @dblclick="openRowClick($event, row)"
+            @keyup.enter="openObject(row)"
+          >
+            <q-icon
+              :name="row.type === 'folder' ? 'folder' : row.icon"
+              :color="row.type === 'folder' ? 'amber-8' : row.color"
+              class="file-grid-icon"
+            />
+            <div class="file-grid-name" :title="row.name">{{ row.name }}</div>
+            <div class="file-grid-meta">{{ row.type === 'folder' ? '文件夹' : row.size }}</div>
+            <q-btn flat round dense icon="more_vert" size="sm" class="file-grid-options" @click.stop>
+              <q-menu>
+                <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
+              </q-menu>
+            </q-btn>
+            <q-menu touch-position context-menu>
+              <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
+            </q-menu>
+          </div>
+        </div>
+
+        <div v-if="viewMode === 'grid' && rows.length === 0 && !loading" class="file-grid-empty">
+          <q-icon name="folder" color="amber-8" size="lg" />
+          此文件夹为空
+        </div>
+
         <div v-if="loadingMore" class="q-pa-md text-center">
           <q-spinner color="primary" size="md" />
           <div class="q-mt-sm text-grey">正在加载更多文件...</div>
@@ -139,6 +194,7 @@ export default defineComponent({
 		loading: false,
 		loadingMore: false,
 		rows: [],
+		viewMode: localStorage.getItem("r2_explorer_view_mode") || "list",
 		cursor: null,
 		hasMore: true,
 		searchQuery: "",
@@ -197,6 +253,17 @@ export default defineComponent({
 		],
 	}),
 	computed: {
+		gridRows: function () {
+			return [...this.rows].sort((a, b) => {
+				if (a.type !== b.type) {
+					return a.type === "folder" ? -1 : 1;
+				}
+				return a.name.localeCompare(b.name, "zh-CN", {
+					numeric: true,
+					sensitivity: "base",
+				});
+			});
+		},
 		selectedBucket: function () {
 			return this.$route.params.bucket;
 		},
@@ -252,6 +319,9 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		saveViewMode: function (mode) {
+			localStorage.setItem("r2_explorer_view_mode", mode);
+		},
 		openRowClick: function (evt, row, index) {
 			evt.preventDefault();
 			this.openObject(row);
@@ -381,7 +451,7 @@ export default defineComponent({
 		this.resetAndFetchFiles();
 	},
 	mounted() {
-		this.$refs.table.sort("name");
+		this.$refs.table?.sort("name");
 
 		this.$bus.on("fetchFiles", this.resetAndFetchFiles);
 
@@ -407,6 +477,10 @@ export default defineComponent({
   display: block;
 }
 
+.file-toolbar {
+  min-height: 40px;
+}
+
 
 .file-list td:first-of-type, .file-list th:first-of-type {
   overflow-x: hidden;
@@ -420,5 +494,110 @@ export default defineComponent({
   width: 100%;
   justify-content: center;
 
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 8px;
+  padding: 8px 0 24px;
+}
+
+.file-grid-item {
+  position: relative;
+  min-width: 0;
+  height: 132px;
+  padding: 14px 10px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  cursor: default;
+  text-align: center;
+  user-select: none;
+}
+
+.file-grid-item:hover,
+.file-grid-item:focus-visible {
+  border-color: #90caf9;
+  background: #eaf4fc;
+  outline: none;
+}
+
+.file-grid-item:active {
+  background: #dceefa;
+}
+
+.file-grid-icon {
+  display: block;
+  margin: 0 auto 8px;
+  font-size: 52px;
+}
+
+.file-grid-name {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.file-grid-meta {
+  margin-top: 3px;
+  color: #757575;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.file-grid-options {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  visibility: hidden;
+}
+
+.file-grid-item:hover .file-grid-options,
+.file-grid-item:focus-within .file-grid-options {
+  visibility: visible;
+}
+
+.file-grid-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  color: #616161;
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .file-toolbar {
+    flex-wrap: wrap;
+    gap: 4px 0;
+  }
+
+  .file-toolbar .q-breadcrumbs {
+    flex-basis: 100%;
+  }
+
+  .file-toolbar .q-input {
+    flex: 1 1 140px;
+    width: auto !important;
+    min-width: 140px;
+  }
+
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+
+  .file-grid-item {
+    height: 122px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .file-grid-options {
+    visibility: visible;
+  }
 }
 </style>
