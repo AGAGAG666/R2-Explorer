@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
+<p align="center">
     <a href="https://github.com/G4brym/R2-Explorer/commits/main" target="_blank">
       <img src="https://img.shields.io/github/commit-activity/m/G4brym/R2-Explorer?label=Commits&style=social" alt="R2-Explorer Commits">
     </a>

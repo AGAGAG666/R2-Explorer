@@ -11,7 +11,7 @@
       :annotation="true"
       :resize="true"
     >
-      <template v-slot:loading> loading content here... </template>
+      <template v-slot:loading>{{ $t('loading') }}</template>
     </pdf>
   </div>
 </template>

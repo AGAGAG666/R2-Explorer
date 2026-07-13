@@ -4,17 +4,17 @@
     <q-card style="min-width: 500px;">
       <q-card-section class="row items-center">
         <q-avatar icon="share" color="blue" text-color="white" />
-        <span class="q-ml-sm text-h6">Share File</span>
+        <span class="q-ml-sm text-h6">{{ $t('shareFile') }}</span>
       </q-card-section>
 
       <q-card-section v-if="row">
-        <div class="text-subtitle2 q-mb-sm">File: <code>{{ row.name }}</code></div>
+        <div class="text-subtitle2 q-mb-sm">{{ $t('file', { name: row.name }) }}</div>
         
         <q-input
           v-model.number="expiresInHours"
           type="number"
-          label="Expires in (hours, 0 = never)"
-          hint="Leave as 0 for permanent link"
+          :label="$t('expiresHours')"
+          :hint="$t('expiresHint')"
           min="0"
           class="q-mb-md"
         />
@@ -22,22 +22,22 @@
         <q-input
           v-model="password"
           type="password"
-          label="Password (optional)"
-          hint="Leave empty for no password protection"
+          :label="$t('passwordOptional')"
+          :hint="$t('passwordHint')"
           class="q-mb-md"
         />
 
         <q-input
           v-model.number="maxDownloads"
           type="number"
-          label="Max Downloads (optional)"
-          hint="Leave as 0 for unlimited downloads"
+          :label="$t('maxDownloads')"
+          :hint="$t('maxDownloadsHint')"
           min="0"
           class="q-mb-md"
         />
 
         <div v-if="shareUrl" class="q-mt-md q-pa-md bg-grey-2 rounded-borders">
-          <div class="text-subtitle2 q-mb-sm">Share Link Created!</div>
+          <div class="text-subtitle2 q-mb-sm">{{ $t('shareCreated') }}</div>
           <div class="flex items-center">
             <q-input
               v-model="shareUrl"
@@ -55,21 +55,21 @@
               class="q-ml-sm"
               @click="copyToClipboard(shareUrl)"
             >
-              <q-tooltip>Copy to clipboard</q-tooltip>
+              <q-tooltip>{{ $t('copyClipboard') }}</q-tooltip>
             </q-btn>
           </div>
           <div v-if="expiresAt" class="text-caption q-mt-sm">
-            Expires: {{ formatExpiry(expiresAt) }}
+            {{ $t('expires', { date: formatExpiry(expiresAt) }) }}
           </div>
         </div>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="primary" v-close-popup />
+        <q-btn flat :label="$t('close')" color="primary" v-close-popup />
         <q-btn
           v-if="!shareUrl"
           flat
-          label="Create Link"
+          :label="$t('createLink')"
           color="blue"
           :loading="loading"
           @click="createShare"
@@ -83,7 +83,7 @@
     <q-card style="min-width: 600px;">
       <q-card-section class="row items-center">
         <q-avatar icon="link" color="blue" text-color="white" />
-        <span class="q-ml-sm text-h6">Manage Share Links</span>
+        <span class="q-ml-sm text-h6">{{ $t('manageShareLinks') }}</span>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
@@ -113,7 +113,7 @@
                   class="q-ml-xs"
                   @click="copyToClipboard(props.row.shareUrl)"
                 >
-                  <q-tooltip>Copy</q-tooltip>
+                  <q-tooltip>{{ $t('copy') }}</q-tooltip>
                 </q-btn>
               </div>
             </q-td>
@@ -126,7 +126,7 @@
                 text-color="white"
                 size="sm"
               >
-                {{ props.row.isExpired ? 'Expired' : 'Active' }}
+                {{ props.row.isExpired ? $t('expired') : $t('active') }}
               </q-chip>
               <q-chip v-if="props.row.hasPassword" color="orange" text-color="white" size="sm">
                 <q-icon name="lock" size="xs" />
@@ -152,7 +152,7 @@
                 color="red"
                 @click="deleteShare(props.row)"
               >
-                <q-tooltip>Revoke</q-tooltip>
+                <q-tooltip>{{ $t('revoke') }}</q-tooltip>
               </q-btn>
             </q-td>
           </template>
@@ -182,48 +182,55 @@ export default defineComponent({
 		shareId: "",
 		expiresAt: null,
 		shares: [],
-		shareColumns: [
-			{
+	}),
+	computed: {
+		shareColumns: function () {
+			this.$locale.locale;
+			return [{
 				name: "key",
-				label: "File",
+				label: this.$t("files"),
 				field: "key",
 				align: "left",
 				sortable: true,
 			},
 			{
 				name: "shareUrl",
-				label: "Link",
+				label: this.$t("link"),
 				field: "shareUrl",
 				align: "left",
 			},
 			{
 				name: "status",
-				label: "Status",
+				label: this.$t("status"),
 				field: "isExpired",
 				align: "center",
 				sortable: true,
 			},
 			{
 				name: "downloads",
-				label: "Downloads",
+				label: this.$t("downloads"),
 				align: "center",
 				sortable: true,
 			},
 			{
 				name: "created",
-				label: "Created",
+				label: this.$t("created"),
 				field: "createdAt",
 				align: "left",
 				sortable: true,
-				format: (val) => new Date(val).toLocaleString(),
+				format: (val) => this.$formatDateTime(val),
 			},
 			{
 				name: "actions",
-				label: "Actions",
+				label: this.$t("actions"),
 				align: "center",
 			},
-		],
-	}),
+			];
+		},
+		selectedBucket: function () {
+			return this.$route.params.bucket;
+		},
+	},
 	methods: {
 		openCreateShare: function (row) {
 			this.createShareModal = true;
@@ -241,7 +248,7 @@ export default defineComponent({
 			} catch (error) {
 				this.q.notify({
 					type: "negative",
-					message: "Failed to load shares",
+					message: this.$t("loadSharesFailed"),
 					caption: error.message,
 				});
 			} finally {
@@ -277,13 +284,13 @@ export default defineComponent({
 
 				this.q.notify({
 					type: "positive",
-					message: "Share link created!",
+					message: this.$t("shareCreated"),
 					icon: "share",
 				});
 			} catch (error) {
 				this.q.notify({
 					type: "negative",
-					message: "Failed to create share link",
+					message: this.$t("createShareFailed"),
 					caption: error.response?.data?.message || error.message,
 				});
 			} finally {
@@ -293,8 +300,8 @@ export default defineComponent({
 		deleteShare: async function (share) {
 			this.q
 				.dialog({
-					title: "Revoke Share Link",
-					message: `Are you sure you want to revoke this share link for "${share.key}"?`,
+					title: this.$t("revokeShareTitle"),
+					message: this.$t("revokeShareConfirm", { name: share.key }),
 					cancel: true,
 					persistent: true,
 				})
@@ -306,13 +313,13 @@ export default defineComponent({
 						);
 						this.q.notify({
 							type: "positive",
-							message: "Share link revoked",
+							message: this.$t("shareRevoked"),
 						});
 						await this.loadShares();
 					} catch (error) {
 						this.q.notify({
 							type: "negative",
-							message: "Failed to revoke share link",
+							message: this.$t("revokeShareFailed"),
 							caption: error.message,
 						});
 					}
@@ -322,12 +329,14 @@ export default defineComponent({
 			navigator.clipboard.writeText(text);
 			this.q.notify({
 				type: "positive",
-				message: "Copied to clipboard!",
+				message: this.$t("copiedClipboard"),
 				icon: "content_copy",
 				timeout: 1000,
 			});
 		},
-		formatExpiry: (timestamp) => new Date(timestamp).toLocaleString(),
+		formatExpiry: function (timestamp) {
+			return this.$formatDateTime(timestamp);
+		},
 		resetCreate: function () {
 			this.createShareModal = false;
 			this.loading = false;
@@ -343,11 +352,6 @@ export default defineComponent({
 			this.manageSharesModal = false;
 			this.loadingShares = false;
 			this.shares = [];
-		},
-	},
-	computed: {
-		selectedBucket: function () {
-			return this.$route.params.bucket;
 		},
 	},
 	setup() {

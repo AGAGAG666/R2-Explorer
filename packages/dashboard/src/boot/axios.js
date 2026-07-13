@@ -11,7 +11,10 @@ let url = window.location.origin;
 if (process.env.NODE_ENV === "development") {
 	url = process.env.VUE_APP_SERVER_URL || "http://localhost:8787";
 }
-const api = axios.create({ baseURL: `${url}/api` });
+const api = axios.create({
+	baseURL: `${url}/api`,
+	timeout: 5000,
+});
 
 export default boot(({ app }) => {
 	// for use inside Vue files (Options API) through this.$axios and this.$api
