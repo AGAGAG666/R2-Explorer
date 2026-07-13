@@ -42,6 +42,7 @@ async function mountPage(route = "/my-bucket/files") {
 				QBtnToggle: true,
 				// Stub child components that have complex templates
 				FilePreview: { name: "FilePreview", template: "<div />", methods: { openFile: vi.fn() } },
+				FileThumbnail: true,
 				FileContextMenu: true,
 				FileOptions: true,
 				DragAndDrop: { name: "DragAndDrop", template: "<div><slot /></div>" },
@@ -130,6 +131,14 @@ describe("FilesFolderPage", () => {
 
 		const colNames = wrapper.vm.columns.map((c: any) => c.name);
 		expect(colNames).toEqual(["name", "lastModified", "size", "options"]);
+	});
+
+	it("recognizes supported image files for thumbnails", async () => {
+		const wrapper = await mountPage();
+
+		expect(wrapper.vm.isImage({ type: "file", name: "photo.JPG" })).toBe(true);
+		expect(wrapper.vm.isImage({ type: "file", name: "photo.svg" })).toBe(false);
+		expect(wrapper.vm.isImage({ type: "folder", name: "photo.jpg" })).toBe(false);
 	});
 
 	it("switches to icon view and remembers the preference", async () => {

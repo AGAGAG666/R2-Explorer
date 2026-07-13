@@ -128,11 +128,15 @@
             @dblclick="openRowClick($event, row)"
             @keyup.enter="openObject(row)"
           >
-            <q-icon
-              :name="row.type === 'folder' ? 'folder' : row.icon"
-              :color="row.type === 'folder' ? 'amber-8' : row.color"
-              class="file-grid-icon"
+            <FileThumbnail
+              v-if="isImage(row)"
+              :bucket="selectedBucket"
+              :file-key="row.key"
+              :name="row.name"
+              :icon="row.icon"
+              :color="row.color"
             />
+            <q-icon v-else :name="row.type === 'folder' ? 'folder' : row.icon" :color="row.type === 'folder' ? 'amber-8' : row.color" class="file-grid-icon" />
             <div class="file-grid-name" :title="row.name">{{ row.name }}</div>
             <div class="file-grid-meta">{{ row.type === 'folder' ? '文件夹' : row.size }}</div>
             <q-btn flat round dense icon="more_vert" size="sm" class="file-grid-options" @click.stop>
@@ -173,6 +177,7 @@
 <script>
 import FileOptions from "components/files/FileOptions.vue";
 import ShareFile from "components/files/ShareFile.vue";
+import FileThumbnail from "components/files/FileThumbnail.vue";
 import FilePreview from "components/preview/FilePreview.vue";
 import DragAndDrop from "components/utils/DragAndDrop.vue";
 import FileContextMenu from "pages/files/FileContextMenu.vue";
@@ -186,6 +191,7 @@ export default defineComponent({
 	components: {
 		FileContextMenu,
 		FileOptions,
+		FileThumbnail,
 		DragAndDrop,
 		FilePreview,
 		ShareFile,
@@ -319,6 +325,12 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		isImage: function (row) {
+			return (
+				row.type === "file" &&
+				/\.(png|jpe?g|webp|avif)$/i.test(row.name)
+			);
+		},
 		saveViewMode: function (mode) {
 			localStorage.setItem("r2_explorer_view_mode", mode);
 		},

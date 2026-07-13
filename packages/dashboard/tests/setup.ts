@@ -40,6 +40,7 @@ const quasarComponentNames = [
 	"QBtn",
 	"QBtnDropdown",
 	"QBtnGroup",
+	"QBtnToggle",
 	"QCard",
 	"QCardActions",
 	"QCardSection",
