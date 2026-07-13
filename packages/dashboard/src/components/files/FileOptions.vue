@@ -3,16 +3,16 @@
     <q-card>
       <q-card-section class="row column" v-if="row">
         <q-avatar class="q-mb-md" icon="delete" color="red" text-color="white" />
-        <span v-if="row.type === 'folder'" class="q-ml-sm">Are you sure you want to delete the folder <code>{{row.name}}</code>, and
+        <span v-if="row.type === 'folder'" class="q-ml-sm">确定要删除文件夹 <code>{{row.name}}</code> 及其中的
           <code v-if="deleteFolderInnerFilesCount !== null">{{deleteFolderInnerFilesCount}}</code>
           <code v-else><q-spinner color="primary"/></code>
-          files inside?</span>
-        <span v-else class="q-ml-sm">Are you sure you want to delete the file <code>{{row.name}}</code>?</span>
+          个文件吗？</span>
+        <span v-else class="q-ml-sm">确定要删除文件 <code>{{row.name}}</code> 吗？</span>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="primary" v-close-popup />
-        <q-btn flat label="Delete" color="red" :loading="loading" @click="deleteConfirm" />
+        <q-btn flat label="取消" color="primary" v-close-popup />
+        <q-btn flat label="删除" color="red" :loading="loading" @click="deleteConfirm" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -21,12 +21,12 @@
     <q-card style="min-width: 300px;">
       <q-card-section class="row column" v-if="row">
         <q-avatar class="q-mb-md" icon="edit" color="orange" text-color="white" />
-        <q-input v-model="renameInput" label="Standard" />
+        <q-input v-model="renameInput" label="名称" />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="primary" v-close-popup />
-        <q-btn flat label="Rename" color="orange" :loading="loading" @click="renameConfirm" />
+        <q-btn flat label="取消" color="primary" v-close-popup />
+        <q-btn flat label="重命名" color="orange" :loading="loading" @click="renameConfirm" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -34,26 +34,26 @@
   <q-dialog v-model="updateMetadataModal" @hide="reset">
     <q-card style="min-width: 300px;">
       <q-card-section class="row column" v-if="row">
-        <h6 class="q-mt-none q-mb-sm flex">HTTP Metadata <q-btn class="q-mr-none q-ml-auto" round size="sm" color="primary" icon="add" @click="updateHttpMetadata.push({key: '', value: ''})" /></h6>
+        <h6 class="q-mt-none q-mb-sm flex">HTTP 元数据 <q-btn class="q-mr-none q-ml-auto" round size="sm" color="primary" icon="add" @click="updateHttpMetadata.push({key: '', value: ''})" /></h6>
         <div class="flex row" v-for="(val, index) in updateHttpMetadata" :key="index">
           <div>
-            <q-input v-model="updateHttpMetadata[index].key" label="Key" />
+            <q-input v-model="updateHttpMetadata[index].key" label="键" />
           </div>
           <div>
-            <q-input v-model="updateHttpMetadata[index].value" label="Value" />
+            <q-input v-model="updateHttpMetadata[index].value" label="值" />
           </div>
           <div class="flex">
             <q-btn class="q-my-auto" round size="sm" color="orange" icon="remove" @click="updateHttpMetadata.splice(index, 1)" />
           </div>
         </div>
 
-        <h6 class="q-mt-xl q-mb-sm flex">Custom Metadata <q-btn class="q-mr-none q-ml-auto" round size="sm" color="primary" icon="add" @click="updateCustomMetadata.push({key: '', value: ''})" /></h6>
+        <h6 class="q-mt-xl q-mb-sm flex">自定义元数据 <q-btn class="q-mr-none q-ml-auto" round size="sm" color="primary" icon="add" @click="updateCustomMetadata.push({key: '', value: ''})" /></h6>
         <div class="flex row" v-for="(val, index) in updateCustomMetadata" :key="index">
           <div>
-            <q-input v-model="updateCustomMetadata[index].key" label="Key" />
+            <q-input v-model="updateCustomMetadata[index].key" label="键" />
           </div>
           <div>
-            <q-input v-model="updateCustomMetadata[index].value" label="Value" />
+            <q-input v-model="updateCustomMetadata[index].value" label="值" />
           </div>
           <div class="flex">
             <q-btn class="q-my-auto" round size="sm" color="orange" icon="remove" @click="updateCustomMetadata.splice(index, 1)" />
@@ -63,8 +63,8 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="primary" v-close-popup />
-        <q-btn flat label="Update Metadata" color="orange" :loading="loading" @click="updateConfirm" />
+        <q-btn flat label="取消" color="primary" v-close-popup />
+        <q-btn flat label="更新元数据" color="orange" :loading="loading" @click="updateConfirm" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -154,7 +154,7 @@ export default defineComponent({
 				const notif = this.q.notify({
 					group: false,
 					spinner: true,
-					message: "Duplicating folder...",
+					message: "正在创建文件夹副本...",
 					caption: "0%",
 					timeout: 0,
 				});
@@ -179,7 +179,7 @@ export default defineComponent({
 					icon: "done",
 					spinner: false,
 					caption: "100%",
-					message: "Folder duplicated!",
+					message: "文件夹副本已创建！",
 					timeout: 2500,
 				});
 			} else {
@@ -189,7 +189,7 @@ export default defineComponent({
 					group: false,
 					icon: "done",
 					spinner: false,
-					message: "File duplicated!",
+					message: "文件副本已创建！",
 					timeout: 2500,
 				});
 			}
@@ -214,7 +214,7 @@ export default defineComponent({
 				group: false,
 				icon: "done", // we add an icon
 				spinner: false, // we reset the spinner setting so the icon can be displayed
-				message: "File renamed!",
+				message: "文件已重命名！",
 				timeout: 2500, // we will timeout it in 2.5s
 			});
 		},
@@ -238,7 +238,7 @@ export default defineComponent({
 				group: false,
 				icon: "done", // we add an icon
 				spinner: false, // we reset the spinner setting so the icon can be displayed
-				message: "File Updated!",
+				message: "文件已更新！",
 				timeout: 2500, // we will timeout it in 2.5s
 			});
 		},
@@ -254,7 +254,7 @@ export default defineComponent({
 				const notif = this.q.notify({
 					group: false,
 					spinner: true,
-					message: "Deleting files...",
+					message: "正在删除文件...",
 					caption: "0%",
 					timeout: 0,
 				});
@@ -274,7 +274,7 @@ export default defineComponent({
 					icon: "done", // we add an icon
 					spinner: false, // we reset the spinner setting so the icon can be displayed
 					caption: "100%",
-					message: "Folder deleted!",
+					message: "文件夹已删除！",
 					timeout: 2500, // we will timeout it in 2.5s
 				});
 			} else {
@@ -284,7 +284,7 @@ export default defineComponent({
 					group: false,
 					icon: "done", // we add an icon
 					spinner: false, // we reset the spinner setting so the icon can be displayed
-					message: "File deleted!",
+					message: "文件已删除！",
 					timeout: 2500, // we will timeout it in 2.5s
 				});
 			}

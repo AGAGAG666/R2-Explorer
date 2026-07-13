@@ -95,7 +95,7 @@ describe("auth-store", () => {
 					password: "wrong",
 					remind: false,
 				}),
-			).rejects.toThrow("Invalid username or password");
+			).rejects.toThrow("用户名或密码错误");
 
 			expect(api.defaults.headers.common["Authorization"]).toBeUndefined();
 		});

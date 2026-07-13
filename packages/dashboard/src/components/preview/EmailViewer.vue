@@ -8,12 +8,12 @@
     <div class="d-flex align-items-start mb-2 mt-1">
       <div class="w-100">
         <small class="float-end">{{ emailData.date }}</small>
-        <small class="text-muted">From: {{ emailData.from?.name }} &lt;{{ emailData.from?.address }}&gt;</small>
+        <small class="text-muted">发件人：{{ emailData.from?.name }} &lt;{{ emailData.from?.address }}&gt;</small>
       </div>
 
     </div>
     <div class="w-100">
-        <small class="text-muted">To:
+        <small class="text-muted">收件人：
           <template v-for="recipient of emailData.to">
             {{ recipient.name }} &lt;{{ recipient.address }}&gt;&semi;
           </template>
@@ -21,7 +21,7 @@
     </div>
 
 
-    <h5 class="mb-3" v-if="!emailData.html && !emailData.text">This email has no HTML or text content</h5>
+    <h5 class="mb-3" v-if="!emailData.html && !emailData.text">此邮件没有 HTML 或文本内容</h5>
 
     <template v-if="emailData.html">
       <br/>
@@ -31,7 +31,7 @@
 
     <template v-if="emailData.text">
       <details :open="emailData.html ? undefined : 'open'">
-        <summary>Text</summary>
+        <summary>文本</summary>
         <br/>
         <div class="overflow-auto" v-html="emailData.text.replaceAll('\n', '<br>')"></div>
       </details>
@@ -39,7 +39,7 @@
     </template>
 
     <template v-if="emailData.attachments?.length > 0">
-      <h5 class="mb-3">This email has {{ emailData.attachments.length }} attachment(s):</h5>
+      <h5 class="mb-3">此邮件有 {{ emailData.attachments.length }} 个附件：</h5>
       <div class="w-100" v-for="attachment of emailData.attachments" :key="attachment.filename">
         <small class="text-muted">{{ attachment.filename }}</small>
       </div>

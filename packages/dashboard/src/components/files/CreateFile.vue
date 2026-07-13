@@ -5,18 +5,18 @@
         @submit="onSubmit"
       >
         <q-card-section>
-          <div class="text-h6">New File Name</div>
+          <div class="text-h6">新文件名称</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
           <q-input dense v-model="newFileName" autofocus
                    lazy-rules
-                   :rules="[ val => val && val.length > 0 || 'Please type something']" />
+                   :rules="[ val => val && val.length > 0 || '请输入内容']" />
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Create" type="submit" :loading="loading" />
+          <q-btn flat label="取消" v-close-popup />
+          <q-btn flat label="创建" type="submit" :loading="loading" />
         </q-card-actions>
       </q-form>
     </q-card>

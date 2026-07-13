@@ -15,7 +15,7 @@ describe("LoginPage", () => {
 			initialRoute: "/auth/login",
 		});
 
-		expect(wrapper.text()).toContain("Sign in");
+		expect(wrapper.text()).toContain("登录");
 	});
 
 	it("has remember me toggle defaulting to true", async () => {
@@ -71,7 +71,7 @@ describe("LoginPage", () => {
 		await expect(wrapper.vm.onSubmit()).rejects.toThrow();
 		await flushPromises();
 
-		expect(wrapper.vm.showError).toBe("Invalid username or password");
+		expect(wrapper.vm.showError).toBe("用户名或密码错误");
 	});
 
 	it("sets loading state during submit", async () => {

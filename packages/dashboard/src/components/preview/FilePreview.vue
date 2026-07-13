@@ -11,8 +11,8 @@
         <div>{{ filename }}</div>
 
         <template v-if="editMode">
-          <q-btn icon="delete" label="Cancel" size="md" class="q-ml-md" color="red" dense @click="cancelEdit" />
-          <q-btn icon="save" label="Save" size="md" class="q-ml-md" color="green" dense @click="saveEdit" />
+          <q-btn icon="delete" label="取消" size="md" class="q-ml-md" color="red" dense @click="cancelEdit" />
+          <q-btn icon="save" label="保存" size="md" class="q-ml-md" color="green" dense @click="saveEdit" />
         </template>
         <template v-else>
           <q-btn icon="edit" label="edit" size="md" class="q-ml-md" color="orange" dense @click="enableEdit" />
@@ -236,7 +236,7 @@ export default {
 		async openFile(file) {
 			if (bytesToMegabytes(file.size) > 200) {
 				this.q.notify({
-					message: "File is too big to preview.",
+					message: "文件过大，无法预览。",
 					color: "orange",
 				});
 
@@ -337,7 +337,7 @@ export default {
 			let result = "";
 			const rows = text.split("\n");
 			if (rows.length === 0) {
-				return "<h2>Empty csv</h2>";
+				return "<h2>CSV 文件为空</h2>";
 			}
 
 			for (const [index, row] of rows.entries()) {
@@ -392,7 +392,7 @@ export default {
 			if (!isValid) {
 				this.q.notify({
 					type: "negative",
-					message: `Content is not valid ${this.type}.`,
+					message: `内容不是有效的 ${this.type}。`,
 				});
 				return;
 			}
@@ -400,7 +400,7 @@ export default {
 			const notif = this.q.notify({
 				group: false,
 				spinner: true,
-				message: "Updating file...",
+				message: "正在更新文件...",
 				caption: "0%",
 				timeout: 0,
 			});
@@ -426,7 +426,7 @@ export default {
 				icon: "done", // we add an icon
 				spinner: false, // we reset the spinner setting so the icon can be displayed
 				caption: "100%",
-				message: "File updated!",
+				message: "文件已更新！",
 				timeout: 5000, // we will timeout it in 5s
 			});
 

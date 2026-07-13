@@ -1,42 +1,42 @@
 <template>
   <q-list style="min-width: 100px">
     <q-item clickable v-close-popup @click="openObject">
-      <q-item-section>Open</q-item-section>
+      <q-item-section>打开</q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="downloadObject" v-if="prop.row.type === 'file'">
-      <q-item-section>Download</q-item-section>
+      <q-item-section>下载</q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="renameObject" v-if="prop.row.type === 'file'">
-      <q-item-section>Rename</q-item-section>
+      <q-item-section>重命名</q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="duplicateObject">
-      <q-item-section>Duplicate</q-item-section>
+      <q-item-section>创建副本</q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="updateMetadataObject" v-if="prop.row.type === 'file'">
-      <q-item-section>Update Metadata</q-item-section>
+      <q-item-section>更新元数据</q-item-section>
     </q-item>
     <q-separator />
     <q-item clickable v-close-popup @click="createShareLink" v-if="prop.row.type === 'file'">
       <q-item-section>
-        <q-item-label>Create Share Link</q-item-label>
-        <q-item-label caption>Public link with optional password</q-item-label>
+        <q-item-label>创建分享链接</q-item-label>
+        <q-item-label caption>可设置密码的公开链接</q-item-label>
       </q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="copyInternalLink">
       <q-item-section>
-        <q-item-label>Copy Internal Link</q-item-label>
-        <q-item-label caption>Link to view in dashboard</q-item-label>
+        <q-item-label>复制内部链接</q-item-label>
+        <q-item-label caption>在管理界面中查看的链接</q-item-label>
       </q-item-section>
     </q-item>
     <q-item clickable v-close-popup @click="copyPublicUrl" v-if="prop.row.type === 'file' && bucketPublicUrl">
       <q-item-section>
-        <q-item-label>Copy Public URL</q-item-label>
-        <q-item-label caption>Direct link via public domain</q-item-label>
+        <q-item-label>复制公开地址</q-item-label>
+        <q-item-label caption>通过公开域名直接访问</q-item-label>
       </q-item-section>
     </q-item>
     <q-separator />
     <q-item clickable v-close-popup @click="deleteObject">
-      <q-item-section>Delete</q-item-section>
+      <q-item-section>删除</q-item-section>
     </q-item>
   </q-list>
 </template>
@@ -119,13 +119,13 @@ export default {
 			try {
 				await navigator.clipboard.writeText(url);
 				this.q.notify({
-					message: "Link to file copied to clipboard!",
+					message: "文件链接已复制到剪贴板！",
 					timeout: 5000,
 					type: "positive",
 				});
 			} catch (err) {
 				this.q.notify({
-					message: `Failed to copy: ${err}`,
+					message: `复制失败：${err}`,
 					timeout: 5000,
 					type: "negative",
 				});
@@ -138,13 +138,13 @@ export default {
 			try {
 				await navigator.clipboard.writeText(url);
 				this.q.notify({
-					message: "Public URL copied to clipboard!",
+					message: "公开地址已复制到剪贴板！",
 					timeout: 5000,
 					type: "positive",
 				});
 			} catch (err) {
 				this.q.notify({
-					message: `Failed to copy: ${err}`,
+					message: `复制失败：${err}`,
 					timeout: 5000,
 					type: "negative",
 				});
@@ -169,7 +169,7 @@ export default {
 				URL.revokeObjectURL(url);
 			} catch (err) {
 				this.q.notify({
-					message: `Download failed: ${err.message || err}`,
+					message: `下载失败：${err.message || err}`,
 					timeout: 5000,
 					type: "negative",
 				});

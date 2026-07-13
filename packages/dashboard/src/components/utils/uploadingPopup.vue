@@ -2,7 +2,7 @@
   <div v-if="Object.keys($store.state.uploadingFiles).length > 0" class="uploading-popup">
     <div class="card">
       <div class="card-header d-flex flex-row">
-        Uploading {{ Object.keys($store.state.uploadingFiles).length }} files
+        正在上传 {{ Object.keys($store.state.uploadingFiles).length }} 个文件
         <button class="btn btn-primary btn-xs btn-close" @click="close"></button>
       </div>
       <div class="card-body">

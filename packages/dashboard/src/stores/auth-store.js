@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", {
 			} catch (e) {
 				console.log(e);
 				delete api.defaults.headers.common["Authorization"];
-				throw new Error("Invalid username or password");
+				throw new Error("用户名或密码错误");
 			}
 
 			api.defaults.headers.common.Authorization = `Basic ${token}`;
