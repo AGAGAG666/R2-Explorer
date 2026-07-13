@@ -49,7 +49,8 @@ const messages = {
 		pleaseTypeSomething: "Please type something",
 		newFolderName: "New Folder Name",
 		newFileName: "New File Name",
-		deleteFolderConfirm: "Are you sure you want to delete the folder {name} and the {count} files inside?",
+		deleteFolderConfirm:
+			"Are you sure you want to delete the folder {name} and the {count} files inside?",
 		deleteFileConfirm: "Are you sure you want to delete the file {name}?",
 		fileName: "File name",
 		httpMetadata: "HTTP Metadata",
@@ -90,7 +91,8 @@ const messages = {
 		emailMarkedUnread: "Email marked as unread!",
 		emailMarkedRead: "Email marked as read!",
 		signIn: "Sign in",
-		signInDescription: "Enter your username and password to access the admin panel.",
+		signInDescription:
+			"Enter your username and password to access the admin panel.",
 		username: "Username",
 		password: "Password",
 		rememberMe: "Remember me",
@@ -129,7 +131,8 @@ const messages = {
 		revokeShareFailed: "Failed to revoke share link",
 		copiedClipboard: "Copied to clipboard!",
 		revokeShareTitle: "Revoke Share Link",
-		revokeShareConfirm: "Are you sure you want to revoke the share link for \"{name}\"?",
+		revokeShareConfirm:
+			'Are you sure you want to revoke the share link for "{name}"?',
 		thanks: "Thank you for using R2-Explorer!",
 		currentVersion: "You are running version {version}",
 		latestVersion: "The latest version is {version}.",
@@ -291,7 +294,8 @@ export const localeState = reactive({
 });
 
 export function t(key, params = {}) {
-	const template = messages[localeState.locale][key] || messages["en-US"][key] || key;
+	const template =
+		messages[localeState.locale][key] || messages["en-US"][key] || key;
 	return Object.entries(params).reduce(
 		(result, [name, value]) => result.replaceAll(`{${name}}`, String(value)),
 		template,
@@ -305,7 +309,9 @@ export function setLocale(locale) {
 }
 
 export function formatDate(value, options) {
-	return new Intl.DateTimeFormat(localeState.locale, options).format(new Date(value));
+	return new Intl.DateTimeFormat(localeState.locale, options).format(
+		new Date(value),
+	);
 }
 
 export function formatDateTime(value) {

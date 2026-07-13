@@ -146,7 +146,8 @@ export default defineComponent({
 	computed: {
 		columns: function () {
 			this.$locale.locale;
-			return [{
+			return [
+				{
 				name: "name",
 				required: true,
 				label: this.$t("name"),
@@ -169,8 +170,8 @@ export default defineComponent({
 					// none is folder
 					return a.localeCompare(b);
 				},
-			},
-			{
+				},
+				{
 				name: "lastModified",
 				required: true,
 				label: this.$t("lastModified"),
@@ -180,8 +181,8 @@ export default defineComponent({
 				sort: (a, b, rowA, rowB) => {
 					return rowA.timestamp - rowB.timestamp;
 				},
-			},
-			{
+				},
+				{
 				name: "size",
 				required: true,
 				label: this.$t("size"),
@@ -191,12 +192,12 @@ export default defineComponent({
 				sort: (a, b, rowA, rowB) => {
 					return rowA.sizeRaw - rowB.sizeRaw;
 				},
-			},
-			{
+				},
+				{
 				name: "options",
 				label: "",
 				sortable: false,
-			},
+				},
 			];
 		},
 		selectedBucket: function () {

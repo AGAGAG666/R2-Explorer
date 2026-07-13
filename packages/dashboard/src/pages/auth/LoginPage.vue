@@ -70,9 +70,10 @@ export default defineComponent({
 				await authStore.LogIn(this.$router, this.form);
 				this.showError = "";
 			} catch (error) {
-				this.showError = error.message === "Invalid username or password"
-					? this.$t("invalidCredentials")
-					: error.message;
+				this.showError =
+					error.message === "Invalid username or password"
+						? this.$t("invalidCredentials")
+						: error.message;
 				throw error;
 			} finally {
 				this.loading = false;
