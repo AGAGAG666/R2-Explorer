@@ -333,10 +333,7 @@ export default defineComponent({
 			});
 		},
 		isImage: (row) =>
-			(
-				row.type === "file" &&
-				/\.(png|jpe?g|webp|avif)$/i.test(row.name)
-			),
+			row.type === "file" && /\.(png|jpe?g|webp|avif)$/i.test(row.name),
 		saveViewMode: (mode) => {
 			localStorage.setItem("r2_explorer_view_mode", mode);
 		},
