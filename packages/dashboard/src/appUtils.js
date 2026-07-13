@@ -407,4 +407,10 @@ export const apiHandler = {
 	deleteShareLink: (bucket, shareId) => {
 		return api.delete(`/buckets/${bucket}/share/${shareId}`);
 	},
+	getShareOrganization: (bucket) => {
+		return api.get(`/buckets/${bucket}/share-organization`);
+	},
+	updateShareOrganization: (bucket, organization) => {
+		return api.put(`/buckets/${bucket}/share-organization`, organization);
+	},
 };

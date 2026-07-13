@@ -211,6 +211,18 @@ describe("FilesFolderPage", () => {
 		);
 	});
 
+	it("opens the standalone share management page", async () => {
+		const wrapper = await mountPage();
+		const routerPush = vi.spyOn(wrapper.vm.$router, "push");
+
+		wrapper.vm.openShareManagement();
+
+		expect(routerPush).toHaveBeenCalledWith({
+			name: "shares-home",
+			params: { bucket: "my-bucket" },
+		});
+	});
+
 	it("calls fetchFilePage on created", async () => {
 		await mountPage();
 		await flushPromises();

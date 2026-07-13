@@ -54,6 +54,14 @@ describe("LeftSidebar", () => {
 		expect(wrapper.text()).toContain("文件");
 	});
 
+	it("shows Share Management button", async () => {
+		const wrapper = await mountWithContext(LeftSidebar, {
+			initialRoute: "/my-bucket/files",
+		});
+
+		expect(wrapper.text()).toContain("分享管理");
+	});
+
 	it("shows Email nav when emailRouting is enabled", async () => {
 		const wrapper = await mountWithContext(LeftSidebar, {
 			initialRoute: "/my-bucket/files",

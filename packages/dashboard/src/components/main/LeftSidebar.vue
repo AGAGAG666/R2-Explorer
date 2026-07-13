@@ -2,7 +2,7 @@
   <div class="q-pa-md" style="height: 100%">
     <div class="flex column" style="height: 100%">
       <q-btn v-if="mainStore.apiReadonly" color="red" stack class="q-mb-lg" label="只读模式" />
-      <q-btn v-else color="green" icon="add" stack class="q-mb-lg" label="新建">
+      <q-btn v-else-if="selectedApp !== 'shares'" color="green" icon="add" stack class="q-mb-lg" label="新建">
         <q-menu>
           <q-list>
             <q-item clickable v-close-popup @click="$refs.createFile.open()">
@@ -45,6 +45,7 @@
 
       <q-btn class="q-mb-sm" @click="gotoFiles" color="blue" icon="folder_copy" label="文件" stack />
       <q-btn v-if="mainStore.config && mainStore.config.emailRouting !== false" class="q-mb-sm" @click="gotoEmail" color="blue" icon="email" label="邮件" stack />
+      <q-btn class="q-mb-sm" @click="gotoShares" color="blue" icon="share" label="分享管理" stack />
 
       <q-btn class="q-mb-sm q-mt-auto q-mb-0" @click="infoPopup=true" color="secondary" icon="question_mark"
              label="信息"
@@ -102,6 +103,9 @@ export default defineComponent({
 	}),
 	components: { CreateFolder, CreateFile },
 	methods: {
+		gotoShares: function () {
+			if (this.selectedApp !== "shares") this.changeApp("shares");
+		},
 		gotoEmail: function () {
 			if (this.selectedApp !== "email") this.changeApp("email");
 		},

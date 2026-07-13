@@ -54,6 +54,18 @@ export class DeleteShareLink extends OpenAPIRoute {
 		// Delete the share metadata
 		await bucket.delete(shareKey);
 
+		const organizationKey = ".r2-explorer/share-management.json";
+		const organizationObject = await bucket.get(organizationKey);
+		if (organizationObject) {
+			const organization = JSON.parse(await organizationObject.text());
+			if (organization.assignments?.[shareId]) {
+				delete organization.assignments[shareId];
+				await bucket.put(organizationKey, JSON.stringify(organization), {
+					httpMetadata: { contentType: "application/json" },
+				});
+			}
+		}
+
 		return c.json({ success: true });
 	}
 }

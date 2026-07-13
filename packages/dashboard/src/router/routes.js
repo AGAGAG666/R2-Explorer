@@ -55,6 +55,11 @@ const routes = [
 				name: "email-file",
 				component: () => import("pages/email/EmailFilePage.vue"),
 			},
+			{
+				path: "/:bucket/shares",
+				name: "shares-home",
+				component: () => import("pages/shares/ShareManagementPage.vue"),
+			},
 
 			// backwards compatibility
 			{

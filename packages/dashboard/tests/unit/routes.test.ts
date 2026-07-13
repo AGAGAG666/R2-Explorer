@@ -77,6 +77,15 @@ describe("routes", () => {
 		expect(router.currentRoute.value.params.bucket).toBe("my-bucket");
 	});
 
+	it("resolves /:bucket/shares to shares-home", async () => {
+		const router = createTestRouter();
+		await router.push("/my-bucket/shares");
+		await router.isReady();
+
+		expect(router.currentRoute.value.name).toBe("shares-home");
+		expect(router.currentRoute.value.params.bucket).toBe("my-bucket");
+	});
+
 	it("resolves /auth/login to login", async () => {
 		const router = createTestRouter();
 		await router.push("/auth/login");

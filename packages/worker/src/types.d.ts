@@ -36,6 +36,18 @@ export type ShareMetadata = {
 	createdAt: number;
 };
 
+export type ShareManagementFolder = {
+	id: string;
+	name: string;
+	parentId: string | null;
+};
+
+export type ShareOrganization = {
+	version: 1;
+	folders: ShareManagementFolder[];
+	assignments: Record<string, string>;
+};
+
 export type AppEnv = {
 	ASSETS: Fetcher;
 	[key: string]: R2Bucket;

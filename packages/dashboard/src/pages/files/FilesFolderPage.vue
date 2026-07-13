@@ -26,7 +26,7 @@
           icon="link"
           color="primary"
           label="管理分享"
-          @click="$refs.shareFile.openManageShares()"
+          @click="openShareManagement"
         >
           <q-tooltip>查看和管理所有分享链接</q-tooltip>
         </q-btn>
@@ -326,6 +326,12 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		openShareManagement: function () {
+			this.$router.push({
+				name: "shares-home",
+				params: { bucket: this.selectedBucket },
+			});
+		},
 		isImage: function (row) {
 			return (
 				row.type === "file" &&
