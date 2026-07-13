@@ -5,7 +5,6 @@ const WORKERS_CI = process.env.WORKERS_CI;
 let R2EXPLORER_WORKER_NAME = process.env.R2EXPLORER_WORKER_NAME;
 const R2EXPLORER_BUCKETS = process.env.R2EXPLORER_BUCKETS;
 const R2EXPLORER_CONFIG = process.env.R2EXPLORER_CONFIG;
-const R2EXPLORER_DOMAIN = process.env.R2EXPLORER_DOMAIN;
 const CF_API_TOKEN = process.env.CF_API_TOKEN;
 
 let baseDir = __dirname;
@@ -41,18 +40,9 @@ main = "src/index.ts"
 assets = { directory = "node_modules/r2-explorer/dashboard", binding = "ASSETS", html_handling = "auto-trailing-slash", not_found_handling = "single-page-application", run_worker_first = ["/api/*", "/share/*"] }
 `;
 
-if (R2EXPLORER_DOMAIN) {
-	wranglerConfig += `
-workers_dev = false
-routes = [
-  { pattern = "${R2EXPLORER_DOMAIN}", custom_domain = true }
-]
-`;
-} else {
-	wranglerConfig += `
+wranglerConfig += `
 workers_dev = true
 `;
-}
 
 for (const rawBucket of R2EXPLORER_BUCKETS.split("\n")) {
   const bucket = rawBucket.trim();
@@ -78,18 +68,12 @@ preview_bucket_name = '${bucketName}'
   }
 }
 
-console.log(wranglerConfig);
 fs.writeFileSync(`${baseDir}/wrangler.toml`, wranglerConfig);
 
 if (!fs.existsSync(`${baseDir}/src/`)) {
 	fs.mkdirSync(`${baseDir}/src/`);
 }
 
-console.log(`
-import { R2Explorer } from "r2-explorer";
-
-export default R2Explorer(${R2EXPLORER_CONFIG});
-`);
 fs.writeFileSync(
 	`${baseDir}/src/index.ts`,
 	`
