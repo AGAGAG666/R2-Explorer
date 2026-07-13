@@ -98,13 +98,14 @@ export class PutShareOrganization extends OpenAPIRoute {
 
 	async handle(c: AppContext) {
 		const data = await this.getValidatedData<typeof this.schema>();
-		validateOrganization(data.body);
+		const organization = organizationSchema.parse(data.body);
+		validateOrganization(organization);
 		await getBucket(c, data.params.bucket).put(
 			ORGANIZATION_KEY,
-			JSON.stringify(data.body),
+			JSON.stringify(organization),
 			{ httpMetadata: { contentType: "application/json" } },
 		);
 
-		return c.json(data.body);
+		return c.json(organization);
 	}
 }
