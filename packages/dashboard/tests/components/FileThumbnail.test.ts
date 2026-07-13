@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import FileThumbnail from "components/files/FileThumbnail.vue";
+import { resetThumbnailState } from "components/files/thumbnailQueue";
 
 const { downloadFile } = vi.hoisted(() => ({
 	downloadFile: vi.fn(),
@@ -23,6 +24,7 @@ const props = {
 describe("FileThumbnail", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		resetThumbnailState();
 		vi.stubGlobal("IntersectionObserver", undefined);
 		vi.stubGlobal("URL", {
 			createObjectURL: vi.fn(() => "blob:thumbnail"),
@@ -76,5 +78,18 @@ describe("FileThumbnail", () => {
 		await flushPromises();
 
 		expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:thumbnail");
+	});
+
+	it("reuses the generated thumbnail during the current session", async () => {
+		downloadFile.mockResolvedValue({ data: new Uint8Array([1, 2, 3]) });
+		const first = mount(FileThumbnail, { props });
+		await flushPromises();
+		first.unmount();
+
+		const second = mount(FileThumbnail, { props });
+		await flushPromises();
+
+		expect(downloadFile).toHaveBeenCalledTimes(1);
+		second.unmount();
 	});
 });

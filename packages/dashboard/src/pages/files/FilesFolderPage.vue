@@ -135,6 +135,7 @@
               :name="row.name"
               :icon="row.icon"
               :color="row.color"
+              :fingerprint="row.etag || row.uploaded || String(row.sizeRaw)"
             />
             <q-icon v-else :name="row.type === 'folder' ? 'folder' : row.icon" :color="row.type === 'folder' ? 'amber-8' : row.color" class="file-grid-icon" />
             <div class="file-grid-name" :title="row.name">{{ row.name }}</div>

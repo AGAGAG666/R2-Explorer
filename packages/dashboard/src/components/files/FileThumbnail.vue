@@ -14,6 +14,11 @@
 
 <script>
 import { apiHandler } from "src/appUtils";
+import {
+	cacheThumbnail,
+	enqueueThumbnail,
+	getCachedThumbnail,
+} from "./thumbnailQueue";
 
 export default {
 	name: "FileThumbnail",
@@ -38,24 +43,47 @@ export default {
 			type: String,
 			default: "grey",
 		},
+		fingerprint: {
+			type: String,
+			default: "",
+		},
 	},
 	data: () => ({
 		source: null,
 		loading: false,
 		failed: false,
-		observer: null,
 		disposed: false,
+		job: null,
 	}),
+	computed: {
+		cacheKey: function () {
+			return `${this.bucket}:${this.fileKey}:${this.fingerprint}`;
+		},
+	},
 	methods: {
 		load: async function () {
-			if (this.loading || this.source || this.failed) return;
+			if (this.job || this.source || this.failed) return;
 
-			this.loading = true;
-			try {
+			this.job = enqueueThumbnail(async () => {
+				if (this.disposed) return null;
+				this.loading = true;
+
+				const cached = await getCachedThumbnail(this.cacheKey);
+				if (cached) return cached;
+
 				const response = await apiHandler.downloadFile(this.bucket, this.fileKey, {
 					downloadType: "objectUrl",
 				});
-				const source = URL.createObjectURL(new Blob([response.data]));
+				const thumbnail = await this.createThumbnail(new Blob([response.data]));
+				await cacheThumbnail(this.cacheKey, thumbnail);
+				return thumbnail;
+			});
+
+			try {
+				const thumbnail = await this.job.promise;
+				if (!thumbnail) return;
+
+				const source = URL.createObjectURL(thumbnail);
 				if (this.disposed) {
 					URL.revokeObjectURL(source);
 				} else {
@@ -66,6 +94,21 @@ export default {
 			} finally {
 				this.loading = false;
 			}
+		},
+		createThumbnail: async function (original) {
+			if (typeof createImageBitmap === "undefined") return original;
+
+			const bitmap = await createImageBitmap(original);
+			const scale = Math.min(1, 240 / bitmap.width, 160 / bitmap.height);
+			const canvas = document.createElement("canvas");
+			canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+			canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+			canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+			bitmap.close();
+
+			return await new Promise((resolve) => {
+				canvas.toBlob((blob) => resolve(blob || original), "image/webp", 0.78);
+			});
 		},
 		handleError: function () {
 			this.failed = true;
@@ -79,25 +122,11 @@ export default {
 		},
 	},
 	mounted() {
-		if (typeof IntersectionObserver === "undefined") {
-			this.load();
-			return;
-		}
-
-		this.observer = new IntersectionObserver(
-			(entries) => {
-				if (entries.some((entry) => entry.isIntersecting)) {
-					this.observer.disconnect();
-					this.load();
-				}
-			},
-			{ rootMargin: "160px" },
-		);
-		this.observer.observe(this.$refs.container);
+		this.load();
 	},
 	beforeUnmount() {
 		this.disposed = true;
-		this.observer?.disconnect();
+		this.job?.cancel();
 		this.releaseSource();
 	},
 };
