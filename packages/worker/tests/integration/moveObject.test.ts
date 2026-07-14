@@ -39,6 +39,7 @@ describe("Move object endpoint", () => {
 		);
 
 		expect(moveResponse.status).toBe(200);
+		await moveResponse.text();
 		expect(await bucket.get("old-name.txt")).toBeNull();
 		expect(await (await bucket.get("new-name.txt"))?.text()).toBe("content");
 		const metadata = await bucket.get(
@@ -54,6 +55,7 @@ describe("Move object endpoint", () => {
 			createExecutionContext(),
 		);
 		expect(shareResponse.status).toBe(200);
+		expect(await shareResponse.text()).toBe("content");
 	});
 
 	it("does not overwrite an existing destination", async () => {
@@ -70,6 +72,7 @@ describe("Move object endpoint", () => {
 		);
 
 		expect(response.status).toBe(409);
+		await response.text();
 		expect(await (await bucket.get("source.txt"))?.text()).toBe("source");
 		expect(await (await bucket.get("destination.txt"))?.text()).toBe(
 			"destination",
