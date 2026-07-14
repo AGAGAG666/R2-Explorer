@@ -79,9 +79,7 @@ export class MoveObject extends OpenAPIRoute {
 		const oldKey = decodeURIComponent(escape(atob(data.body.oldKey)));
 		const newKey = decodeURIComponent(escape(atob(data.body.newKey)));
 
-		const object = await bucket.get(oldKey);
-
-		if (object === null) {
+		if (!(await bucket.head(oldKey))) {
 			throw new HTTPException(404, {
 				message: `Source object not found: ${oldKey}`,
 			});
@@ -94,6 +92,13 @@ export class MoveObject extends OpenAPIRoute {
 		if (await bucket.head(newKey)) {
 			throw new HTTPException(409, {
 				message: `Destination object already exists: ${newKey}`,
+			});
+		}
+
+		const object = await bucket.get(oldKey);
+		if (!object) {
+			throw new HTTPException(404, {
+				message: `Source object not found: ${oldKey}`,
 			});
 		}
 
