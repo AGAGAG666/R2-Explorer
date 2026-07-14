@@ -90,6 +90,30 @@ describe("ShareManagementPage", () => {
 		expect(wrapper.vm.shares[0].shareUrl).toBe("/share/share1");
 	});
 
+	it("moves multiple selected shares in one organization update", async () => {
+		const wrapper = await mountWithContext(ShareManagementPage, {
+			initialRoute: "/my-bucket/shares",
+		});
+		await flushPromises();
+		wrapper.vm.selectedShareIds = ["share1", "share2"];
+		wrapper.vm.openMoveSelectedShares();
+		wrapper.vm.moveTarget = "root-folder";
+
+		await wrapper.vm.moveShare();
+
+		expect(updateShareOrganization).toHaveBeenCalledTimes(1);
+		expect(updateShareOrganization).toHaveBeenCalledWith(
+			"my-bucket",
+			expect.objectContaining({
+				assignments: expect.objectContaining({
+					share1: "root-folder",
+					share2: "root-folder",
+				}),
+			}),
+		);
+		expect(wrapper.vm.selectedShareIds).toEqual([]);
+	});
+
 	it("creates a child folder in the current folder", async () => {
 		vi.stubGlobal("crypto", { randomUUID: () => "new-folder" });
 		const wrapper = await mountWithContext(ShareManagementPage, {

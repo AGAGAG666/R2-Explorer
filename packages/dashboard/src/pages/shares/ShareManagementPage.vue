@@ -43,10 +43,28 @@
         </q-card>
       </div>
 
-      <div class="text-subtitle1 text-weight-medium q-mb-sm">{{ currentFolderId ? '此文件夹中的分享' : '未分类分享' }}</div>
+      <div class="share-list-toolbar q-mb-sm">
+        <div class="text-subtitle1 text-weight-medium">{{ currentFolderId ? '此文件夹中的分享' : '未分类分享' }}</div>
+        <div class="row items-center q-gutter-sm">
+          <q-checkbox
+            v-if="currentShares.length"
+            :model-value="allCurrentSharesSelected"
+            label="全选"
+            @update:model-value="toggleCurrentShares"
+          />
+          <q-btn
+            v-if="selectedShareIds.length"
+            color="primary"
+            icon="drive_file_move"
+            :label="`移动已选 (${selectedShareIds.length})`"
+            @click="openMoveSelectedShares"
+          />
+        </div>
+      </div>
       <div v-if="currentShares.length" class="share-list">
         <q-card v-for="share in currentShares" :key="share.shareId" flat bordered class="q-mb-sm">
           <q-card-section class="share-row">
+            <q-checkbox v-model="selectedShareIds" :val="share.shareId" />
             <div class="share-main">
               <div class="text-weight-medium ellipsis" :title="share.key">{{ share.key }}</div>
               <div class="text-caption text-grey-7">
@@ -80,9 +98,11 @@
 
     <q-dialog v-model="moveDialog">
       <q-card style="min-width: 360px">
-        <q-card-section class="text-h6">移动分享</q-card-section>
+        <q-card-section class="text-h6">{{ movingShares.length > 1 ? '批量移动分享' : '移动分享' }}</q-card-section>
         <q-card-section>
-          <div class="q-mb-md ellipsis" :title="movingShare?.key">{{ movingShare?.key }}</div>
+          <div class="q-mb-md ellipsis" :title="movingShare?.key">
+            {{ movingShares.length > 1 ? `已选择 ${movingShares.length} 个分享链接` : movingShare?.key }}
+          </div>
           <q-select v-model="moveTarget" :options="folderOptions" emit-value map-options label="目标管理文件夹" />
         </q-card-section>
         <q-card-actions align="right">
@@ -110,7 +130,9 @@ export default defineComponent({
 		newFolderName: "",
 		moveDialog: false,
 		movingShare: null,
+		movingShares: [],
 		moveTarget: null,
+		selectedShareIds: [],
 	}),
 	computed: {
 		selectedBucket: function () {
@@ -160,11 +182,23 @@ export default defineComponent({
 					.sort((a, b) => a.label.localeCompare(b.label, "zh-CN")),
 			];
 		},
+		allCurrentSharesSelected: function () {
+			return (
+				this.currentShares.length > 0 &&
+				this.currentShares.every((share) =>
+					this.selectedShareIds.includes(share.shareId),
+				)
+			);
+		},
 	},
 	watch: {
 		selectedBucket() {
 			this.currentFolderId = null;
+			this.selectedShareIds = [];
 			this.load();
+		},
+		currentFolderId() {
+			this.selectedShareIds = [];
 		},
 	},
 	methods: {
@@ -228,17 +262,47 @@ export default defineComponent({
 		},
 		openMoveShare: function (share) {
 			this.movingShare = share;
+			this.movingShares = [share];
 			this.moveTarget = this.organization.assignments[share.shareId] || null;
 			this.moveDialog = true;
 		},
-		moveShare: async function () {
-			if (this.moveTarget) {
-				this.organization.assignments[this.movingShare.shareId] =
-					this.moveTarget;
+		toggleCurrentShares: function (selected) {
+			const currentIds = this.currentShares.map((share) => share.shareId);
+			if (selected) {
+				this.selectedShareIds = [
+					...new Set([...this.selectedShareIds, ...currentIds]),
+				];
 			} else {
-				delete this.organization.assignments[this.movingShare.shareId];
+				this.selectedShareIds = this.selectedShareIds.filter(
+					(shareId) => !currentIds.includes(shareId),
+				);
+			}
+		},
+		openMoveSelectedShares: function () {
+			this.movingShares = this.shares.filter((share) =>
+				this.selectedShareIds.includes(share.shareId),
+			);
+			this.movingShare = this.movingShares[0] || null;
+			this.moveTarget = this.currentFolderId;
+			this.moveDialog = this.movingShares.length > 0;
+		},
+		moveShare: async function () {
+			const sharesToMove = this.movingShares.length
+				? this.movingShares
+				: this.movingShare
+					? [this.movingShare]
+					: [];
+			for (const share of sharesToMove) {
+				if (this.moveTarget) {
+					this.organization.assignments[share.shareId] = this.moveTarget;
+				} else {
+					delete this.organization.assignments[share.shareId];
+				}
 			}
 			await this.saveOrganization();
+			this.selectedShareIds = [];
+			this.movingShares = [];
+			this.movingShare = null;
 			this.moveDialog = false;
 		},
 		copyLink: async function (url) {
@@ -258,6 +322,13 @@ export default defineComponent({
 <style scoped>
 .share-header,
 .share-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.share-list-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -291,7 +362,8 @@ export default defineComponent({
 
 @media (max-width: 600px) {
   .share-header,
-  .share-row {
+  .share-row,
+  .share-list-toolbar {
     align-items: stretch;
     flex-direction: column;
   }

@@ -21,12 +21,26 @@
     <q-card style="min-width: 300px;">
       <q-card-section class="row column" v-if="row">
         <q-avatar class="q-mb-md" icon="edit" color="orange" text-color="white" />
-        <q-input v-model="renameInput" label="名称" />
+        <q-input
+          v-model.trim="renameInput"
+          label="名称"
+          hint="已有分享链接地址保持不变"
+          :error="renameInput.includes('/')"
+          error-message="文件名不能包含 /"
+          @keyup.enter="renameConfirm"
+        />
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn flat label="取消" color="primary" v-close-popup />
-        <q-btn flat label="重命名" color="orange" :loading="loading" @click="renameConfirm" />
+        <q-btn
+          flat
+          label="重命名"
+          color="orange"
+          :loading="loading"
+          :disable="!renameInput || renameInput.includes('/') || renameInput === row?.name"
+          @click="renameConfirm"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -197,26 +211,43 @@ export default defineComponent({
 			this.$bus.emit("fetchFiles");
 		},
 		renameConfirm: async function () {
-			if (this.renameInput.length === 0) {
+			if (
+				this.renameInput.length === 0 ||
+				this.renameInput.includes("/") ||
+				this.renameInput === this.row.name
+			) {
 				return;
 			}
 
 			this.loading = true;
-			await apiHandler.renameObject(
-				this.selectedBucket,
-				this.row.key,
-				this.row.key.split("/").slice(0, -1).concat(this.renameInput).join("/"),
-			);
+			try {
+				await apiHandler.renameObject(
+					this.selectedBucket,
+					this.row.key,
+					this.row.key
+						.split("/")
+						.slice(0, -1)
+						.concat(this.renameInput)
+						.join("/"),
+				);
 
-			this.$bus.emit("fetchFiles");
-			this.reset();
-			this.q.notify({
-				group: false,
-				icon: "done", // we add an icon
-				spinner: false, // we reset the spinner setting so the icon can be displayed
-				message: "文件已重命名！",
-				timeout: 2500, // we will timeout it in 2.5s
-			});
+				this.$bus.emit("fetchFiles");
+				this.reset();
+				this.q.notify({
+					group: false,
+					icon: "done",
+					spinner: false,
+					message: "文件已重命名，分享链接保持不变！",
+					timeout: 2500,
+				});
+			} catch (error) {
+				this.loading = false;
+				this.q.notify({
+					type: "negative",
+					message: "文件重命名失败",
+					caption: error.response?.data?.message || error.message,
+				});
+			}
 		},
 		updateConfirm: async function () {
 			this.loading = true;

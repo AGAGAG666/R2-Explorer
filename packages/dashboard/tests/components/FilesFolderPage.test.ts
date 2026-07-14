@@ -18,6 +18,7 @@ vi.mock("src/appUtils", async (importOriginal) => {
 			headFile: vi.fn(),
 			listObjects: vi.fn(),
 			listShares: vi.fn().mockResolvedValue({ data: { shares: [] } }),
+			renameObject: vi.fn(),
 		},
 	};
 });
@@ -252,6 +253,33 @@ describe("FilesFolderPage", () => {
 		wrapper.vm.openFileShares(row);
 
 		expect(openManageShares).toHaveBeenCalledWith(row);
+	});
+
+	it("moves multiple selected files while preserving their names", async () => {
+		const wrapper = await mountPage();
+		await flushPromises();
+		wrapper.vm.rows = [
+			{ type: "file", key: "one.txt", name: "one.txt" },
+			{ type: "file", key: "nested/two.txt", name: "two.txt" },
+		];
+		wrapper.vm.selectedFileKeys = ["one.txt", "nested/two.txt"];
+		wrapper.vm.moveFilesTarget = "archive/";
+
+		await wrapper.vm.moveSelectedFiles();
+
+		expect(apiHandler.renameObject).toHaveBeenNthCalledWith(
+			1,
+			"my-bucket",
+			"one.txt",
+			"archive/one.txt",
+		);
+		expect(apiHandler.renameObject).toHaveBeenNthCalledWith(
+			2,
+			"my-bucket",
+			"nested/two.txt",
+			"archive/two.txt",
+		);
+		expect(wrapper.vm.selectedFileKeys).toEqual([]);
 	});
 
 	it("calls fetchFilePage on created", async () => {

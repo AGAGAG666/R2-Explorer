@@ -50,6 +50,7 @@ export async function mountWithContext<T extends Component>(
 				PdfViewer: true,
 				EmailViewer: true,
 				LogGz: true,
+				QCheckbox: true,
 				...(globalOverrides?.stubs ?? {}),
 			},
 		},

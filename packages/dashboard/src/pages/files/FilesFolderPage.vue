@@ -53,6 +53,21 @@
         </q-btn-toggle>
       </div>
 
+      <div v-if="currentFiles.length" class="file-selection-toolbar q-mb-sm">
+        <q-checkbox
+          :model-value="allCurrentFilesSelected"
+          label="全选文件"
+          @update:model-value="toggleCurrentFiles"
+        />
+        <q-btn
+          v-if="selectedFiles.length"
+          color="primary"
+          icon="drive_file_move"
+          :label="`移动已选 (${selectedFiles.length})`"
+          @click="openMoveSelectedFiles"
+        />
+      </div>
+
       <drag-and-drop ref="uploader">
 
         <q-table
@@ -90,6 +105,13 @@
 
           <template v-slot:body-cell-name="prop">
             <td class="flex" style="align-items: center">
+              <q-checkbox
+                v-if="prop.row.type === 'file'"
+                v-model="selectedFileKeys"
+                :val="prop.row.key"
+                dense
+                @click.stop
+              />
               <q-icon :name="prop.row.icon" size="sm" :color="prop.row.color" class="q-mr-xs" />
               {{prop.row.name}}
             </td>
@@ -141,6 +163,14 @@
             @dblclick="openRowClick($event, row)"
             @keyup.enter="openObject(row)"
           >
+            <q-checkbox
+              v-if="row.type === 'file'"
+              v-model="selectedFileKeys"
+              :val="row.key"
+              dense
+              class="file-grid-select"
+              @click.stop
+            />
             <FileThumbnail
               v-if="isImage(row)"
               :bucket="selectedBucket"
@@ -199,6 +229,34 @@
   <file-preview ref="preview"/>
   <file-options ref="options" />
   <share-file ref="shareFile" @sharesChanged="loadShares" />
+
+  <q-dialog v-model="moveFilesDialog">
+    <q-card style="min-width: 360px">
+      <q-card-section class="text-h6">批量移动文件</q-card-section>
+      <q-card-section>
+        <div class="q-mb-md">已选择 {{ selectedFiles.length }} 个文件</div>
+        <q-select
+          v-model="moveFilesTarget"
+          :options="fileFolderOptions"
+          emit-value
+          map-options
+          label="目标文件夹"
+          :loading="loadingFileFolders"
+        />
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="取消" v-close-popup />
+        <q-btn
+          flat
+          color="primary"
+          label="移动"
+          :loading="movingFiles"
+          :disable="moveFilesTarget === null"
+          @click="moveSelectedFiles"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script>
@@ -232,6 +290,12 @@ export default defineComponent({
 		hasMore: true,
 		searchQuery: "",
 		shares: [],
+		selectedFileKeys: [],
+		moveFilesDialog: false,
+		moveFilesTarget: null,
+		fileFolderOptions: [],
+		loadingFileFolders: false,
+		movingFiles: false,
 		columns: [
 			{
 				name: "name",
@@ -298,6 +362,22 @@ export default defineComponent({
 				});
 			});
 		},
+		currentFiles: function () {
+			return this.rows.filter((row) => row.type === "file");
+		},
+		selectedFiles: function () {
+			return this.currentFiles.filter((row) =>
+				this.selectedFileKeys.includes(row.key),
+			);
+		},
+		allCurrentFilesSelected: function () {
+			return (
+				this.currentFiles.length > 0 &&
+				this.currentFiles.every((row) =>
+					this.selectedFileKeys.includes(row.key),
+				)
+			);
+		},
 		selectedBucket: function () {
 			return this.$route.params.bucket;
 		},
@@ -345,15 +425,94 @@ export default defineComponent({
 	watch: {
 		selectedBucket(newVal) {
 			this.searchQuery = "";
+			this.selectedFileKeys = [];
 			this.resetAndFetchFiles();
 			this.loadShares();
 		},
 		selectedFolder(newVal) {
 			this.searchQuery = "";
+			this.selectedFileKeys = [];
 			this.resetAndFetchFiles();
 		},
 	},
 	methods: {
+		toggleCurrentFiles: function (selected) {
+			const currentKeys = this.currentFiles.map((row) => row.key);
+			if (selected) {
+				this.selectedFileKeys = [
+					...new Set([...this.selectedFileKeys, ...currentKeys]),
+				];
+			} else {
+				this.selectedFileKeys = this.selectedFileKeys.filter(
+					(key) => !currentKeys.includes(key),
+				);
+			}
+		},
+		loadFileFolderOptions: async function () {
+			this.loadingFileFolders = true;
+			try {
+				let cursor = null;
+				let truncated = true;
+				const folders = new Set();
+				while (truncated) {
+					const response = await apiHandler.listObjects(
+						this.selectedBucket,
+						"",
+						"",
+						cursor,
+					);
+					for (const object of response.data.objects || []) {
+						if (object.key.endsWith("/") && !object.key.startsWith(".")) {
+							folders.add(object.key);
+						}
+					}
+					truncated = response.data.truncated;
+					cursor = response.data.cursor;
+				}
+				this.fileFolderOptions = [
+					{ label: "根目录", value: "" },
+					...[...folders]
+						.sort((a, b) => a.localeCompare(b, "zh-CN"))
+						.map((folder) => ({ label: folder, value: folder })),
+				];
+			} finally {
+				this.loadingFileFolders = false;
+			}
+		},
+		openMoveSelectedFiles: async function () {
+			this.moveFilesTarget = this.selectedFolder || "";
+			this.moveFilesDialog = true;
+			await this.loadFileFolderOptions();
+		},
+		moveSelectedFiles: async function () {
+			this.movingFiles = true;
+			let moved = 0;
+			try {
+				for (const row of this.selectedFiles) {
+					const fileName = row.key.split("/").pop();
+					const newKey = `${this.moveFilesTarget}${fileName}`;
+					if (newKey === row.key) continue;
+					await apiHandler.renameObject(this.selectedBucket, row.key, newKey);
+					moved += 1;
+				}
+				this.q.notify({
+					type: "positive",
+					message: `已移动 ${moved} 个文件`,
+				});
+				this.selectedFileKeys = [];
+				this.moveFilesDialog = false;
+			} catch (error) {
+				this.q.notify({
+					type: "negative",
+					message: "批量移动文件失败",
+					caption: error.response?.data?.message || error.message,
+				});
+			} finally {
+				this.movingFiles = false;
+				await this.resetAndFetchFiles();
+				await this.loadShares();
+			}
+		},
 		hasShares: function (row) {
 			return (
 				row.type === "file" &&
@@ -542,6 +701,17 @@ export default defineComponent({
   min-height: 40px;
 }
 
+.file-selection-toolbar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
 
 .file-list td:first-of-type, .file-list th:first-of-type {
   overflow-x: hidden;
@@ -615,6 +785,12 @@ export default defineComponent({
   top: 2px;
   right: 2px;
   visibility: hidden;
+}
+
+.file-grid-select {
+  position: absolute;
+  top: 4px;
+  left: 4px;
 }
 
 .file-grid-share {
