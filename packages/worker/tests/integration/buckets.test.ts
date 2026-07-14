@@ -487,6 +487,63 @@ describe("Bucket Endpoints", () => {
 			expect(await destObject?.text()).toBe(CONTENT);
 		});
 
+		it("should keep existing shares valid after moving an object", async () => {
+			const createResponse = await app.fetch(
+				createTestRequest(
+					`/api/buckets/${BUCKET_NAME}/${btoa(SOURCE_KEY)}/share`,
+					"POST",
+					{},
+				),
+				env,
+				createExecutionContext(),
+			);
+			const { shareId } = (await createResponse.json()) as { shareId: string };
+
+			const response = await app.fetch(
+				createTestRequest(`/api/buckets/${BUCKET_NAME}/move`, "POST", {
+					oldKey: btoa(SOURCE_KEY),
+					newKey: btoa(DEST_KEY),
+				}),
+				env,
+				createExecutionContext(),
+			);
+			expect(response.status).toBe(200);
+
+			const metadata = await MY_TEST_BUCKET_1.get(
+				`.r2-explorer/sharable-links/${shareId}.json`,
+			);
+			expect(JSON.parse((await metadata?.text()) || "{}").key).toBe(DEST_KEY);
+
+			const shareResponse = await app.fetch(
+				createTestRequest(`/share/${shareId}`),
+				env,
+				createExecutionContext(),
+			);
+			expect(shareResponse.status).toBe(200);
+			expect(await shareResponse.text()).toBe(CONTENT);
+		});
+
+		it("should not overwrite an existing destination", async () => {
+			await MY_TEST_BUCKET_1.put(DEST_KEY, "Existing destination");
+
+			const response = await app.fetch(
+				createTestRequest(`/api/buckets/${BUCKET_NAME}/move`, "POST", {
+					oldKey: btoa(SOURCE_KEY),
+					newKey: btoa(DEST_KEY),
+				}),
+				env,
+				createExecutionContext(),
+			);
+
+			expect(response.status).toBe(409);
+			expect(await (await MY_TEST_BUCKET_1.get(SOURCE_KEY))?.text()).toBe(
+				CONTENT,
+			);
+			expect(await (await MY_TEST_BUCKET_1.get(DEST_KEY))?.text()).toBe(
+				"Existing destination",
+			);
+		});
+
 		it("should return 404 when attempting to move a non-existent source object", async () => {
 			const base64NonExistentKey = btoa("non-existent-source.txt");
 			const base64DestKey = btoa(DEST_KEY);
