@@ -356,7 +356,8 @@ export default defineComponent({
 	methods: {
 		hasShares: function (row) {
 			return (
-				row.type === "file" && this.shares.some((share) => share.key === row.key)
+				row.type === "file" &&
+				this.shares.some((share) => share.key === row.key)
 			);
 		},
 		openFileShares: function (row) {
