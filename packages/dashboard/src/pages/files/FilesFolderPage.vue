@@ -103,18 +103,31 @@
               touch-position
               context-menu
             >
-              <FileContextMenu :prop="prop" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
+              <FileContextMenu :prop="prop" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" @manageShareLinks="openFileShares" />
             </q-menu>
           </template>
 
           <template v-slot:body-cell-options="prop">
             <td class="text-right">
               <q-btn round flat icon="more_vert" size="sm">
-                <q-menu>
-                  <FileContextMenu :prop="prop" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
-                </q-menu>
-              </q-btn>
-            </td>
+              <q-menu>
+                <FileContextMenu :prop="prop" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" @manageShareLinks="openFileShares" />
+              </q-menu>
+            </q-btn>
+            <q-btn
+              v-if="hasShares(prop.row)"
+              flat
+              round
+              dense
+              icon="link"
+              color="primary"
+              size="sm"
+              class="file-share-indicator"
+              @click.stop="openFileShares(prop.row)"
+            >
+              <q-tooltip>查看此文件的分享链接</q-tooltip>
+            </q-btn>
+          </td>
           </template>
         </q-table>
 
@@ -142,11 +155,24 @@
             <div class="file-grid-meta">{{ row.type === 'folder' ? '文件夹' : row.size }}</div>
             <q-btn flat round dense icon="more_vert" size="sm" class="file-grid-options" @click.stop>
               <q-menu>
-                <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
+                <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" @manageShareLinks="openFileShares" />
               </q-menu>
             </q-btn>
+            <q-btn
+              v-if="hasShares(row)"
+              flat
+              round
+              dense
+              icon="link"
+              color="primary"
+              size="sm"
+              class="file-grid-share"
+              @click.stop="openFileShares(row)"
+            >
+              <q-tooltip>查看此文件的分享链接</q-tooltip>
+            </q-btn>
             <q-menu touch-position context-menu>
-              <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" />
+              <FileContextMenu :prop="{ row }" @openObject="openObject" @deleteObject="$refs.options.deleteObject" @renameObject="$refs.options.renameObject" @duplicateObject="$refs.options.duplicateObject" @updateMetadataObject="$refs.options.updateMetadataObject" @createShareLink="$refs.shareFile.openCreateShare" @manageShareLinks="openFileShares" />
             </q-menu>
           </div>
         </div>
@@ -172,7 +198,7 @@
 
   <file-preview ref="preview"/>
   <file-options ref="options" />
-  <share-file ref="shareFile" />
+  <share-file ref="shareFile" @sharesChanged="loadShares" />
 </template>
 
 <script>
@@ -205,6 +231,7 @@ export default defineComponent({
 		cursor: null,
 		hasMore: true,
 		searchQuery: "",
+		shares: [],
 		columns: [
 			{
 				name: "name",
@@ -319,6 +346,7 @@ export default defineComponent({
 		selectedBucket(newVal) {
 			this.searchQuery = "";
 			this.resetAndFetchFiles();
+			this.loadShares();
 		},
 		selectedFolder(newVal) {
 			this.searchQuery = "";
@@ -326,6 +354,22 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		hasShares: function (row) {
+			return (
+				row.type === "file" && this.shares.some((share) => share.key === row.key)
+			);
+		},
+		openFileShares: function (row) {
+			this.$refs.shareFile.openManageShares(row);
+		},
+		loadShares: async function () {
+			try {
+				const response = await apiHandler.listShares(this.selectedBucket);
+				this.shares = response.data.shares;
+			} catch (error) {
+				this.shares = [];
+			}
+		},
 		openShareManagement: function () {
 			this.$router.push({
 				name: "shares-home",
@@ -464,6 +508,7 @@ export default defineComponent({
 	},
 	created() {
 		this.resetAndFetchFiles();
+		this.loadShares();
 	},
 	mounted() {
 		this.$refs.table?.sort("name");
@@ -569,6 +614,16 @@ export default defineComponent({
   top: 2px;
   right: 2px;
   visibility: hidden;
+}
+
+.file-grid-share {
+  position: absolute;
+  top: 34px;
+  right: 2px;
+}
+
+.file-share-indicator {
+  margin-left: 2px;
 }
 
 .file-grid-item:hover .file-grid-options,

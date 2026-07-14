@@ -22,6 +22,12 @@
         <q-item-label caption>可设置密码的公开链接</q-item-label>
       </q-item-section>
     </q-item>
+    <q-item clickable v-close-popup @click="manageShareLinks" v-if="prop.row.type === 'file'">
+      <q-item-section>
+        <q-item-label>查看分享链接</q-item-label>
+        <q-item-label caption>查看、复制或删除此文件的链接</q-item-label>
+      </q-item-section>
+    </q-item>
     <q-item clickable v-close-popup @click="copyInternalLink">
       <q-item-section>
         <q-item-label>复制内部链接</q-item-label>
@@ -88,6 +94,9 @@ export default {
 		},
 		createShareLink: function () {
 			this.$emit("createShareLink", this.prop.row);
+		},
+		manageShareLinks: function () {
+			this.$emit("manageShareLinks", this.prop.row);
 		},
 		copyInternalLink: async function () {
 			let url;

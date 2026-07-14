@@ -83,12 +83,15 @@
     <q-card style="min-width: 600px;">
       <q-card-section class="row items-center">
         <q-avatar icon="link" color="blue" text-color="white" />
-        <span class="q-ml-sm text-h6">管理分享链接</span>
+        <span class="q-ml-sm text-h6">{{ managedFileKey ? '文件分享链接' : '管理分享链接' }}</span>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
       <q-card-section>
+        <div v-if="managedFileKey" class="text-subtitle2 q-mb-sm">
+          文件：<code>{{ managedFileKey }}</code>
+        </div>
         <q-table
           :rows="shares"
           :columns="shareColumns"
@@ -97,6 +100,11 @@
           flat
           :pagination="{ rowsPerPage: 10 }"
         >
+          <template v-slot:no-data>
+            <div class="full-width q-pa-md text-center text-grey">
+              此文件暂无分享链接
+            </div>
+          </template>
           <template v-slot:body-cell-shareUrl="props">
             <q-td :props="props">
               <div class="flex items-center">
@@ -182,6 +190,7 @@ export default defineComponent({
 		shareId: "",
 		expiresAt: null,
 		shares: [],
+		managedFileKey: null,
 		shareColumns: [
 			{
 				name: "key",
@@ -229,15 +238,24 @@ export default defineComponent({
 			this.createShareModal = true;
 			this.row = row;
 		},
-		openManageShares: async function () {
+		openManageShares: async function (row = null, shares = null) {
+			this.managedFileKey = row?.key || null;
 			this.manageSharesModal = true;
-			await this.loadShares();
+			if (shares) {
+				this.shares = this.filterShares(shares);
+			} else {
+				await this.loadShares();
+			}
+		},
+		filterShares: function (shares) {
+			if (!this.managedFileKey) return shares;
+			return shares.filter((share) => share.key === this.managedFileKey);
 		},
 		loadShares: async function () {
 			this.loadingShares = true;
 			try {
 				const response = await apiHandler.listShares(this.selectedBucket);
-				this.shares = response.data.shares;
+				this.shares = this.filterShares(response.data.shares);
 			} catch (error) {
 				this.q.notify({
 					type: "negative",
@@ -280,6 +298,7 @@ export default defineComponent({
 					message: "分享链接已创建！",
 					icon: "share",
 				});
+				this.$emit("sharesChanged");
 			} catch (error) {
 				this.q.notify({
 					type: "negative",
@@ -309,6 +328,7 @@ export default defineComponent({
 							message: "分享链接已撤销",
 						});
 						await this.loadShares();
+						this.$emit("sharesChanged");
 					} catch (error) {
 						this.q.notify({
 							type: "negative",
@@ -343,6 +363,7 @@ export default defineComponent({
 			this.manageSharesModal = false;
 			this.loadingShares = false;
 			this.shares = [];
+			this.managedFileKey = null;
 		},
 	},
 	computed: {

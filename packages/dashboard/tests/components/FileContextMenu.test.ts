@@ -42,6 +42,7 @@ describe("FileContextMenu", () => {
 		expect(text).toContain("更新元数据");
 		expect(text).toContain("删除");
 		expect(text).toContain("创建分享链接");
+		expect(text).toContain("查看分享链接");
 	});
 
 	it("hides file-only items for a folder", async () => {
@@ -57,6 +58,7 @@ describe("FileContextMenu", () => {
 		expect(text).not.toContain("重命名");
 		expect(text).not.toContain("更新元数据");
 		expect(text).not.toContain("创建分享链接");
+		expect(text).not.toContain("查看分享链接");
 	});
 
 	it("shows Copy Public URL when bucket has publicUrl", async () => {
@@ -108,10 +110,23 @@ describe("FileContextMenu", () => {
 		});
 
 		const items = wrapper.findAllComponents({ name: "QItem" });
-		const deleteItem = items.find((i) => i.text().includes("删除"));
+		const deleteItem = items.find((item) => item.text() === "删除");
 		await deleteItem!.trigger("click");
 
 		expect(wrapper.emitted("deleteObject")).toBeTruthy();
+	});
+
+	it("emits manageShareLinks for the current file", async () => {
+		const wrapper = await mountWithContext(FileContextMenu, {
+			props: { prop: fileProp },
+			initialRoute: "/my-bucket/files",
+		});
+
+		const items = wrapper.findAllComponents({ name: "QItem" });
+		const manageItem = items.find((item) => item.text().includes("查看分享链接"));
+		await manageItem!.trigger("click");
+
+		expect(wrapper.emitted("manageShareLinks")).toEqual([[fileProp.row]]);
 	});
 
 	it("computes selectedBucket from route", async () => {

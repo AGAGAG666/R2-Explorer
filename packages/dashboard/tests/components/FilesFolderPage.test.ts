@@ -17,6 +17,7 @@ vi.mock("src/appUtils", async (importOriginal) => {
 			}),
 			headFile: vi.fn(),
 			listObjects: vi.fn(),
+			listShares: vi.fn().mockResolvedValue({ data: { shares: [] } }),
 		},
 	};
 });
@@ -61,6 +62,7 @@ describe("FilesFolderPage", () => {
 			truncated: false,
 			cursor: null,
 		});
+		vi.mocked(apiHandler.listShares).mockResolvedValue({ data: { shares: [] } });
 	});
 
 	it("renders breadcrumbs showing bucket name at root", async () => {
@@ -221,6 +223,35 @@ describe("FilesFolderPage", () => {
 			name: "shares-home",
 			params: { bucket: "my-bucket" },
 		});
+	});
+
+	it("marks files that have share links", async () => {
+		vi.mocked(apiHandler.listShares).mockResolvedValue({
+			data: {
+				shares: [{ shareId: "share-1", key: "document.pdf" }],
+			},
+		});
+		const wrapper = await mountPage();
+		await flushPromises();
+
+		expect(wrapper.vm.hasShares({ type: "file", key: "document.pdf" })).toBe(true);
+		expect(wrapper.vm.hasShares({ type: "file", key: "other.pdf" })).toBe(false);
+		expect(wrapper.vm.hasShares({ type: "folder", key: "document.pdf" })).toBe(
+			false,
+		);
+	});
+
+	it("opens the current file share links", async () => {
+		const wrapper = await mountPage();
+		await flushPromises();
+		const row = { type: "file", key: "document.pdf" };
+		wrapper.vm.shares = [{ shareId: "share-1", key: "document.pdf" }];
+		const shareFile = wrapper.vm.$refs.shareFile as any;
+		const openManageShares = vi.spyOn(shareFile, "openManageShares");
+
+		wrapper.vm.openFileShares(row);
+
+		expect(openManageShares).toHaveBeenCalledWith(row);
 	});
 
 	it("calls fetchFilePage on created", async () => {
