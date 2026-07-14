@@ -508,6 +508,7 @@ describe("Bucket Endpoints", () => {
 				createExecutionContext(),
 			);
 			expect(response.status).toBe(200);
+			await response.text();
 
 			const metadata = await MY_TEST_BUCKET_1.get(
 				`.r2-explorer/sharable-links/${shareId}.json`,
@@ -536,12 +537,11 @@ describe("Bucket Endpoints", () => {
 			);
 
 			expect(response.status).toBe(409);
-			expect(await (await MY_TEST_BUCKET_1.get(SOURCE_KEY))?.text()).toBe(
-				CONTENT,
-			);
-			expect(await (await MY_TEST_BUCKET_1.get(DEST_KEY))?.text()).toBe(
-				"Existing destination",
-			);
+			await response.text();
+			const sourceObject = await MY_TEST_BUCKET_1.get(SOURCE_KEY);
+			const destinationObject = await MY_TEST_BUCKET_1.get(DEST_KEY);
+			expect(await sourceObject?.text()).toBe(CONTENT);
+			expect(await destinationObject?.text()).toBe("Existing destination");
 		});
 
 		it("should return 404 when attempting to move a non-existent source object", async () => {
