@@ -21,9 +21,7 @@ async function revokeObjectShares(bucket: R2Bucket, objectKey: string) {
 			if (metadata.key !== objectKey) continue;
 
 			shareKeys.push(item.key);
-			shareIds.push(
-				item.key.slice(SHARE_PREFIX.length, -".json".length),
-			);
+			shareIds.push(item.key.slice(SHARE_PREFIX.length, -".json".length));
 		}
 		cursor = listed.truncated ? listed.cursor : undefined;
 	} while (cursor);
