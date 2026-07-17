@@ -65,6 +65,40 @@ describe("ShareManagementPage", () => {
 		]);
 	});
 
+	it("shows an authenticated thumbnail for image shares only", async () => {
+		listShares.mockResolvedValue({
+			data: {
+				shares: [
+					{
+						shareId: "image-share",
+						key: "photos/summer.webp",
+						shareUrl: "/share/image-share",
+						currentDownloads: 0,
+					},
+					{
+						shareId: "text-share",
+						key: "notes.txt",
+						shareUrl: "/share/text-share",
+						currentDownloads: 0,
+					},
+				],
+			},
+		});
+		const wrapper = await mountWithContext(ShareManagementPage, {
+			initialRoute: "/my-bucket/shares",
+			global: { stubs: { FileThumbnail: true } },
+		});
+		await flushPromises();
+
+		const thumbnails = wrapper.findAllComponents({ name: "FileThumbnail" });
+		expect(thumbnails).toHaveLength(1);
+		expect(thumbnails[0].props()).toMatchObject({
+			bucket: "my-bucket",
+			fileKey: "photos/summer.webp",
+			name: "summer.webp",
+		});
+	});
+
 	it("navigates through nested management folders", async () => {
 		const wrapper = await mountWithContext(ShareManagementPage, {
 			initialRoute: "/my-bucket/shares",

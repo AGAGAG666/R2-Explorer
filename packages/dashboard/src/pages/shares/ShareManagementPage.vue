@@ -64,7 +64,16 @@
       <div v-if="currentShares.length" class="share-list">
         <q-card v-for="share in currentShares" :key="share.shareId" flat bordered class="q-mb-sm">
           <q-card-section class="share-row">
-            <q-checkbox v-model="selectedShareIds" :val="share.shareId" />
+            <q-checkbox v-model="selectedShareIds" :val="share.shareId" class="share-select" />
+            <FileThumbnail
+              v-if="isImageShare(share)"
+              :bucket="selectedBucket"
+              :file-key="share.key"
+              :name="fileName(share.key)"
+              icon="image"
+              color="blue-grey-5"
+              class="share-thumbnail"
+            />
             <div class="share-main">
               <div class="text-weight-medium ellipsis" :title="share.key">{{ share.key }}</div>
               <div class="text-caption text-grey-7">
@@ -72,10 +81,12 @@
                 <span v-if="share.hasPassword"> · 有密码</span>
               </div>
             </div>
-            <q-btn flat dense icon="info" label="详情" @click="openShareDetails(share)" />
-            <q-btn flat dense icon="content_copy" label="复制链接" @click="copyLink(share.shareUrl)" />
-            <q-btn flat dense icon="drive_file_move" label="移动" @click="openMoveShare(share)" />
-            <q-btn flat dense icon="delete" color="negative" label="删除" @click="deleteShare(share)" />
+            <div class="share-actions">
+              <q-btn flat dense icon="info" label="详情" @click="openShareDetails(share)" />
+              <q-btn flat dense icon="content_copy" label="复制链接" @click="copyLink(share.shareUrl)" />
+              <q-btn flat dense icon="drive_file_move" label="移动" @click="openMoveShare(share)" />
+              <q-btn flat dense icon="delete" color="negative" label="删除" @click="deleteShare(share)" />
+            </div>
           </q-card-section>
         </q-card>
       </div>
@@ -149,12 +160,14 @@
 </template>
 
 <script>
+import FileThumbnail from "components/files/FileThumbnail.vue";
 import { useQuasar } from "quasar";
 import { apiHandler } from "src/appUtils";
 import { defineComponent } from "vue";
 
 export default defineComponent({
 	name: "ShareManagementPage",
+	components: { FileThumbnail },
 	data: () => ({
 		loading: false,
 		shares: [],
@@ -238,6 +251,8 @@ export default defineComponent({
 		},
 	},
 	methods: {
+		isImageShare: (share) => /\.(png|jpe?g|webp|avif)$/i.test(share.key),
+		fileName: (key) => key.split("/").pop() || key,
 		load: async function () {
 			this.loading = true;
 			try {
@@ -423,6 +438,25 @@ export default defineComponent({
   flex: 1;
 }
 
+.share-thumbnail {
+  flex: 0 0 112px;
+  width: 112px;
+  height: 72px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f7f9fb;
+}
+
+.share-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
 .share-empty {
   min-height: 180px;
   display: flex;
@@ -434,14 +468,46 @@ export default defineComponent({
 
 @media (max-width: 600px) {
   .share-header,
-  .share-row,
   .share-list-toolbar {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .share-row .q-btn {
-    align-self: flex-start;
+  .share-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+  }
+
+  .share-select {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .share-thumbnail {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .share-main {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .share-thumbnail + .share-main {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .share-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-top: 2px;
   }
 }
 </style>
