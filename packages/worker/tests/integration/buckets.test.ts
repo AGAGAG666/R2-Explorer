@@ -365,6 +365,82 @@ describe("Bucket Endpoints", () => {
 			expect(r2Object).toBeNull();
 		});
 
+		it("should revoke the deleted object's shares and clean their folder assignments", async () => {
+			const objectKey = "shared-file-to-delete.txt";
+			const otherObjectKey = "other-shared-file.txt";
+			await MY_TEST_BUCKET_1.put(objectKey, "Shared content");
+			await MY_TEST_BUCKET_1.put(otherObjectKey, "Other content");
+
+			const createShare = async (key: string) => {
+				const response = await app.fetch(
+					createTestRequest(
+						`/api/buckets/MY_TEST_BUCKET_1/${btoa(key)}/share`,
+						"POST",
+						{},
+					),
+					env,
+					createExecutionContext(),
+				);
+				expect(response.status).toBe(200);
+				return ((await response.json()) as { shareId: string }).shareId;
+			};
+
+			const firstShareId = await createShare(objectKey);
+			const secondShareId = await createShare(objectKey);
+			const otherShareId = await createShare(otherObjectKey);
+			await MY_TEST_BUCKET_1.put(
+				".r2-explorer/share-management.json",
+				JSON.stringify({
+					version: 1,
+					folders: [{ id: "folder", name: "Folder", parentId: null }],
+					assignments: {
+						[firstShareId]: "folder",
+						[secondShareId]: "folder",
+						[otherShareId]: "folder",
+					},
+				}),
+			);
+
+			const response = await app.fetch(
+				createTestRequest("/api/buckets/MY_TEST_BUCKET_1/delete", "POST", {
+					key: btoa(objectKey),
+				}),
+				env,
+				createExecutionContext(),
+			);
+
+			expect(response.status).toBe(200);
+			expect(await MY_TEST_BUCKET_1.head(objectKey)).toBeNull();
+			expect(
+				await MY_TEST_BUCKET_1.head(
+					`.r2-explorer/sharable-links/${firstShareId}.json`,
+				),
+			).toBeNull();
+			expect(
+				await MY_TEST_BUCKET_1.head(
+					`.r2-explorer/sharable-links/${secondShareId}.json`,
+				),
+			).toBeNull();
+			expect(
+				await MY_TEST_BUCKET_1.head(
+					`.r2-explorer/sharable-links/${otherShareId}.json`,
+				),
+			).not.toBeNull();
+			const deletedShareResponse = await app.fetch(
+				createTestRequest(`/share/${firstShareId}`),
+				env,
+				createExecutionContext(),
+			);
+			expect(deletedShareResponse.status).toBe(404);
+
+			const organization = await MY_TEST_BUCKET_1.get(
+				".r2-explorer/share-management.json",
+			);
+			expect(
+				JSON.parse((await organization?.text()) || "{}").assignments,
+			).toEqual({ [otherShareId]: "folder" });
+		});
+
 		it("should return success when attempting to delete a non-existent object", async () => {
 			if (!MY_TEST_BUCKET_1) {
 				throw new Error("MY_TEST_BUCKET_1 binding not available");
