@@ -62,6 +62,17 @@ describe("LeftSidebar", () => {
 		expect(wrapper.text()).toContain("分享文件夹");
 	});
 
+	it("shows Upload Tasks button when writable", async () => {
+		const wrapper = await mountWithContext(LeftSidebar, {
+			initialRoute: "/my-bucket/files",
+		});
+		const store = useMainStore();
+		store.apiReadonly = false;
+		await wrapper.vm.$nextTick();
+
+		expect(wrapper.text()).toContain("上传任务");
+	});
+
 	it("shows Email nav when emailRouting is enabled", async () => {
 		const wrapper = await mountWithContext(LeftSidebar, {
 			initialRoute: "/my-bucket/files",

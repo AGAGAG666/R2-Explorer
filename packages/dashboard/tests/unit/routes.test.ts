@@ -86,6 +86,16 @@ describe("routes", () => {
 		expect(router.currentRoute.value.params.bucket).toBe("my-bucket");
 	});
 
+	it("resolves /:bucket/uploads to uploads-home", async () => {
+		const router = createTestRouter();
+		await router.push("/my-bucket/uploads?folder=photos/");
+		await router.isReady();
+
+		expect(router.currentRoute.value.name).toBe("uploads-home");
+		expect(router.currentRoute.value.params.bucket).toBe("my-bucket");
+		expect(router.currentRoute.value.query.folder).toBe("photos/");
+	});
+
 	it("resolves /auth/login to login", async () => {
 		const router = createTestRouter();
 		await router.push("/auth/login");

@@ -60,6 +60,11 @@ const routes = [
 				name: "shares-home",
 				component: () => import("pages/shares/ShareManagementPage.vue"),
 			},
+			{
+				path: "/:bucket/uploads",
+				name: "uploads-home",
+				component: () => import("pages/uploads/UploadTasksPage.vue"),
+			},
 
 			// backwards compatibility
 			{

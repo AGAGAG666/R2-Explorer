@@ -22,7 +22,7 @@
               </q-item-section>
             </q-item>
 
-            <q-item clickable v-close-popup @click="$bus.emit('openFilesUploader')">
+            <q-item clickable v-close-popup @click="gotoUploads">
               <q-item-section>
                 <q-item-label>
                   <q-icon name="upload_file" size="sm" />
@@ -31,7 +31,7 @@
               </q-item-section>
             </q-item>
 
-            <q-item clickable v-close-popup @click="$bus.emit('openFoldersUploader')">
+            <q-item clickable v-close-popup @click="gotoUploads">
               <q-item-section>
                 <q-item-label>
                   <q-icon name="folder" size="sm" />
@@ -44,6 +44,7 @@
       </q-btn>
 
       <q-btn class="q-mb-sm" @click="gotoFiles" color="blue" icon="folder_copy" label="文件" stack />
+      <q-btn v-if="!mainStore.apiReadonly" class="q-mb-sm" @click="gotoUploads" color="blue" icon="cloud_upload" label="上传任务" stack />
       <q-btn v-if="mainStore.config && mainStore.config.emailRouting !== false" class="q-mb-sm" @click="gotoEmail" color="blue" icon="email" label="邮件" stack />
       <q-btn class="q-mb-sm" @click="gotoShares" color="blue" icon="folder_shared" label="分享文件夹" stack />
 
@@ -93,6 +94,7 @@ import CreateFile from "components/files/CreateFile.vue";
 import CreateFolder from "components/files/CreateFolder.vue";
 import { useMainStore } from "stores/main-store";
 import { defineComponent } from "vue";
+import { decode } from "../../appUtils";
 
 export default defineComponent({
 	name: "LeftSidebar",
@@ -103,6 +105,13 @@ export default defineComponent({
 	}),
 	components: { CreateFolder, CreateFile },
 	methods: {
+		gotoUploads: function () {
+			this.$router.push({
+				name: "uploads-home",
+				params: { bucket: this.selectedBucket },
+				query: this.selectedFolder ? { folder: this.selectedFolder } : {},
+			});
+		},
 		gotoShares: function () {
 			if (this.selectedApp !== "shares") this.changeApp("shares");
 		},
@@ -143,6 +152,10 @@ export default defineComponent({
 		},
 		selectedApp: function () {
 			return this.$route.name?.split("-")[0] || "files";
+		},
+		selectedFolder: function () {
+			if (!this.$route.params.folder) return "";
+			return decode(this.$route.params.folder);
 		},
 	},
 	async mounted() {

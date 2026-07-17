@@ -25,6 +25,7 @@
 <script>
 import { useQuasar } from "quasar";
 import { ROOT_FOLDER, apiHandler, decode, sleep } from "src/appUtils";
+import { createUploadTasks } from "src/uploadTasks";
 import { useMainStore } from "stores/main-store";
 
 export default {
@@ -89,24 +90,21 @@ export default {
 			}
 		},
 		inputFiles(event) {
-			this.uploadFiles({
-				"": event.target.files,
+			this.openUploadTasks(event.target.files);
+			event.target.value = "";
+		},
+		openUploadTasks(files) {
+			if (!files?.length) return;
+			createUploadTasks(this.selectedBucket, this.selectedFolder, files);
+			this.$router.push({
+				name: "uploads-home",
+				params: { bucket: this.selectedBucket },
+				query: this.selectedFolder ? { folder: this.selectedFolder } : {},
 			});
 		},
 		inputFolders(event) {
-			const folders = {};
-			for (const file of event.target.files) {
-				const lastIndex = file.webkitRelativePath.lastIndexOf("/");
-				const path = file.webkitRelativePath.slice(0, lastIndex);
-
-				if (folders[path] === undefined) {
-					folders[path] = [];
-				}
-
-				folders[path].push(file);
-			}
-
-			this.uploadFiles(folders);
+			this.openUploadTasks(event.target.files);
+			event.target.value = "";
 		},
 		async uploadFiles(folders) {
 			let totalFiles = 0;
@@ -325,7 +323,11 @@ export default {
 			// console.log(cleanedRootFiles)
 			// console.log(folders)
 
-			this.uploadFiles(folders);
+			if (Object.keys(folders).length === 1 && folders[""].length) {
+				this.openUploadTasks(folders[""]);
+			} else {
+				this.uploadFiles(folders);
+			}
 
 			this.isHover = false;
 		},
