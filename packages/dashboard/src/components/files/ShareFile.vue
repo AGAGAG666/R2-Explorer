@@ -1,7 +1,7 @@
 <template>
   <!-- Share Link Create Dialog -->
   <q-dialog v-model="createShareModal" @hide="resetCreate">
-    <q-card style="min-width: 500px;">
+    <q-card class="share-dialog-card create-share-card">
       <q-card-section class="row items-center">
         <q-avatar icon="share" color="blue" text-color="white" />
         <span class="q-ml-sm text-h6">分享文件</span>
@@ -38,13 +38,13 @@
 
         <div v-if="shareUrl" class="q-mt-md q-pa-md bg-grey-2 rounded-borders">
           <div class="text-subtitle2 q-mb-sm">分享链接已创建！</div>
-          <div class="flex items-center">
+          <div class="share-url-row">
             <q-input
               v-model="shareUrl"
               readonly
               dense
               outlined
-              class="col"
+              class="share-url-input"
             />
             <q-btn
               flat
@@ -80,8 +80,8 @@
 
   <!-- Manage Shares Dialog -->
   <q-dialog v-model="manageSharesModal" @hide="resetManage">
-    <q-card style="min-width: 600px;">
-      <q-card-section class="row items-center">
+    <q-card class="share-dialog-card manage-shares-card">
+      <q-card-section class="row items-center no-wrap">
         <q-avatar icon="link" color="blue" text-color="white" />
         <span class="q-ml-sm text-h6">{{ managedFileKey ? '文件分享链接' : '管理分享链接' }}</span>
         <q-space />
@@ -89,10 +89,11 @@
       </q-card-section>
 
       <q-card-section>
-        <div v-if="managedFileKey" class="text-subtitle2 q-mb-sm">
+        <div v-if="managedFileKey" class="managed-file text-subtitle2 q-mb-sm">
           文件：<code>{{ managedFileKey }}</code>
         </div>
         <q-table
+          v-if="!q.screen.lt.sm"
           :rows="shares"
           :columns="shareColumns"
           row-key="shareId"
@@ -165,6 +166,48 @@
             </q-td>
           </template>
         </q-table>
+
+        <div v-else class="mobile-share-list">
+          <div v-if="loadingShares" class="q-pa-lg text-center">
+            <q-spinner color="primary" size="32px" />
+          </div>
+          <div v-else-if="!shares.length" class="q-pa-md text-center text-grey">
+            此文件暂无分享链接
+          </div>
+          <template v-else>
+            <q-card v-for="share in shares" :key="share.shareId" flat bordered class="mobile-share-card">
+              <q-card-section>
+                <div class="mobile-share-heading">
+                  <div class="mobile-share-key text-weight-medium">{{ share.key }}</div>
+                  <q-btn flat round dense icon="delete" color="red" @click="deleteShare(share)">
+                    <q-tooltip>撤销</q-tooltip>
+                  </q-btn>
+                </div>
+                <div class="mobile-share-link-row q-mt-sm">
+                  <a :href="share.shareUrl" target="_blank" class="mobile-share-link text-primary">
+                    {{ share.shareUrl }}
+                  </a>
+                  <q-btn flat round dense size="sm" icon="content_copy" color="primary" @click="copyToClipboard(share.shareUrl)">
+                    <q-tooltip>复制</q-tooltip>
+                  </q-btn>
+                </div>
+                <div class="mobile-share-meta q-mt-md">
+                  <div>
+                    <span class="text-grey-7">状态</span>
+                    <q-chip :color="share.isExpired ? 'red' : 'green'" text-color="white" size="sm">
+                      {{ share.isExpired ? '已过期' : '有效' }}
+                    </q-chip>
+                    <q-icon v-if="share.hasPassword" name="lock" color="orange" size="18px">
+                      <q-tooltip>有密码</q-tooltip>
+                    </q-icon>
+                  </div>
+                  <div><span class="text-grey-7">下载</span> {{ formatDownloads(share) }}</div>
+                  <div><span class="text-grey-7">创建</span> {{ formatCreatedAt(share.createdAt) }}</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </template>
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -234,6 +277,9 @@ export default defineComponent({
 		],
 	}),
 	methods: {
+		formatCreatedAt: (timestamp) => new Date(timestamp).toLocaleString(),
+		formatDownloads: (share) =>
+			`${share.currentDownloads} / ${share.maxDownloads || "∞"}`,
 		openCreateShare: function (row) {
 			this.createShareModal = true;
 			this.row = row;
@@ -380,14 +426,102 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.share-dialog-card {
+  width: min(100%, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+.create-share-card {
+  width: min(500px, calc(100vw - 32px));
+}
+
+.manage-shares-card {
+  width: min(960px, calc(100vw - 32px));
+  max-width: 960px;
+}
+
 code {
   background-color: #e9e9e9;
   padding: 0.25em;
+}
+
+.managed-file,
+.managed-file code {
+  overflow-wrap: anywhere;
+}
+
+.share-url-row,
+.mobile-share-heading,
+.mobile-share-link-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.share-url-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-share-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-share-card {
+  min-width: 0;
+}
+
+.mobile-share-heading {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.mobile-share-key,
+.mobile-share-link {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.mobile-share-link {
+  flex: 1;
+}
+
+.mobile-share-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.mobile-share-meta > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-share-meta .text-grey-7 {
+  flex: 0 0 36px;
 }
 
 .ellipsis {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media (max-width: 599px) {
+  .share-dialog-card {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .share-dialog-card :deep(.q-card__section) {
+    padding: 14px;
+  }
+
+  .share-url-row {
+    align-items: stretch;
+  }
 }
 </style>

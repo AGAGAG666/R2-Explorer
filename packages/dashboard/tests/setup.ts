@@ -7,6 +7,7 @@ vi.mock("quasar", () => ({
 	useQuasar: () => ({
 		notify: vi.fn(),
 		dialog: vi.fn(),
+		screen: { lt: { sm: false } },
 	}),
 	EventBus: class {
 		emit = vi.fn();

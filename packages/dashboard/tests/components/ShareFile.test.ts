@@ -1,3 +1,4 @@
+import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ShareFile from "components/files/ShareFile.vue";
 import { apiHandler } from "src/appUtils";
@@ -59,5 +60,31 @@ describe("ShareFile", () => {
 		expect(wrapper.vm.shares).toEqual([
 			{ shareId: "share-1", key: "document.pdf" },
 		]);
+	});
+
+	it("uses responsive cards instead of the table on mobile", async () => {
+		const wrapper = await mountShareFile();
+		wrapper.vm.q.screen.lt.sm = true;
+		await wrapper.vm.openManageShares(null, [
+			{
+				shareId: "share-1",
+				key: "a/very/long/path/document.pdf",
+				shareUrl: "https://example.com/share/a-very-long-share-id",
+				currentDownloads: 2,
+				maxDownloads: 5,
+				createdAt: 1_700_000_000_000,
+				isExpired: false,
+				hasPassword: true,
+			},
+		]);
+		await flushPromises();
+
+		expect(wrapper.findComponent({ name: "QTable" }).exists()).toBe(false);
+		expect(wrapper.find(".mobile-share-card").exists()).toBe(true);
+		expect(wrapper.find(".mobile-share-key").text()).toContain("document.pdf");
+		expect(wrapper.find(".mobile-share-link").text()).toContain(
+			"a-very-long-share-id",
+		);
+		expect(wrapper.text()).toContain("2 / 5");
 	});
 });
