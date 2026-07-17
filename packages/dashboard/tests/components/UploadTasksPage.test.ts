@@ -125,4 +125,24 @@ describe("UploadTasksPage", () => {
 		expect(wrapper.vm.pendingTask).toMatchObject({ parts: [], uploadId: null });
 		expect(chooseFile).toHaveBeenCalled();
 	});
+
+	it("explains whether an action resumes or discards saved parts", async () => {
+		const task = {
+			id: "task-1",
+			name: "archive.zip",
+			status: "paused",
+			createdAt: 1,
+			parts: [{ partNumber: 1, etag: "etag-1" }],
+			size: 10,
+			chunkSize: 5,
+		};
+		loadUploadTasks.mockReturnValue([task]);
+		const wrapper = await mountWithContext(UploadTasksPage, {
+			initialRoute: "/my-bucket/uploads",
+		});
+
+		expect(wrapper.text()).toContain("继续上传（选择原文件）");
+		expect(wrapper.text()).toContain("从头上传（放弃断点）");
+		expect(wrapper.text()).toContain("已完成分片会保留");
+	});
 });

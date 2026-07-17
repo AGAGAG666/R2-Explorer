@@ -15,7 +15,7 @@
     <input ref="folderInput" class="hidden-input" type="file" webkitdirectory multiple @change="selectFiles" />
 
     <q-banner rounded class="resume-note q-my-md">
-      浏览器不会在刷新后保留文件读取权限。任务进度会保留，但继续上传时必须重新选择同一个原文件。
+      刷新后，请点“继续上传（选择原文件）”：已完成分片会保留。只有需要放弃断点时，才点“从头上传”。
     </q-banner>
 
     <div v-if="tasks.length" class="task-list">
@@ -43,7 +43,7 @@
               flat
               color="primary"
               icon="restart_alt"
-              :label="filesByTask[task.id] ? '继续上传' : '重新选择原文件'"
+              :label="filesByTask[task.id] ? '继续上传' : '继续上传（选择原文件）'"
               :loading="activeTaskId === task.id"
               @click="continueTask(task)"
             />
@@ -52,7 +52,7 @@
               flat
               color="orange-9"
               icon="refresh"
-              label="重新开始"
+              label="从头上传（放弃断点）"
               :disable="activeTaskId === task.id"
               @click="restartTask(task)"
             />
