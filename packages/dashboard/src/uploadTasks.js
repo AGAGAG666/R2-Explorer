@@ -31,7 +31,8 @@ export function loadUploadTasks(bucket) {
 
 export function createUploadTasks(bucket, folder, files) {
 	const existing = loadAllTasks();
-	const normalizedFolder = folder && !folder.endsWith("/") ? `${folder}/` : folder;
+	const normalizedFolder =
+		folder && !folder.endsWith("/") ? `${folder}/` : folder;
 	const selectedFiles = Array.from(files);
 	const created = selectedFiles.map((file) => ({
 		id: crypto.randomUUID(),

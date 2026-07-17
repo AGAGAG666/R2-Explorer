@@ -121,9 +121,14 @@ export default {
 			if (!files.length) return;
 
 			if (this.pendingTask) {
-				const file = files.find((item) => matchesUploadTask(this.pendingTask, item));
+				const file = files.find((item) =>
+					matchesUploadTask(this.pendingTask, item),
+				);
 				if (!file) {
-					this.q.notify({ type: "negative", message: "所选文件与原上传任务不匹配" });
+					this.q.notify({
+						type: "negative",
+						message: "所选文件与原上传任务不匹配",
+					});
 				} else {
 					bindUploadTaskFile(this.pendingTask.id, file);
 					this.filesByTask[this.pendingTask.id] = file;
@@ -202,14 +207,29 @@ export default {
 			const folder = slash >= 0 ? task.key.slice(0, slash + 1) : "";
 			this.$router.push({
 				name: folder ? "files-folder" : "files-home",
-				params: folder ? { bucket: task.bucket, folder: encode(folder) } : { bucket: task.bucket },
+				params: folder
+					? { bucket: task.bucket, folder: encode(folder) }
+					: { bucket: task.bucket },
 			});
 		},
-		statusLabel: (status) => ({ waiting: "等待中", uploading: "上传中", paused: "可继续", completed: "已完成" })[status] || status,
-		statusColor: (status) => ({ waiting: "blue-grey", uploading: "blue", paused: "orange", completed: "green" })[status] || "grey",
+		statusLabel: (status) =>
+			({
+				waiting: "等待中",
+				uploading: "上传中",
+				paused: "可继续",
+				completed: "已完成",
+			})[status] || status,
+		statusColor: (status) =>
+			({
+				waiting: "blue-grey",
+				uploading: "blue",
+				paused: "orange",
+				completed: "green",
+			})[status] || "grey",
 		formatSize(size) {
 			if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-			if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+			if (size < 1024 * 1024 * 1024)
+				return `${(size / 1024 / 1024).toFixed(1)} MB`;
 			return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
 		},
 	},
