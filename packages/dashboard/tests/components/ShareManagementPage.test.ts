@@ -3,16 +3,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ShareManagementPage from "pages/shares/ShareManagementPage.vue";
 import { mountWithContext } from "../helpers";
 
-const { listShares, getShareOrganization, updateShareOrganization } = vi.hoisted(
-	() => ({
+const {
+	listShares,
+	getShareOrganization,
+	updateShareOrganization,
+	deleteShareLink,
+} = vi.hoisted(() => ({
 		listShares: vi.fn(),
 		getShareOrganization: vi.fn(),
 		updateShareOrganization: vi.fn(),
-	}),
-);
+		deleteShareLink: vi.fn(),
+}));
 
 vi.mock("src/appUtils", () => ({
-	apiHandler: { listShares, getShareOrganization, updateShareOrganization },
+	apiHandler: {
+		listShares,
+		getShareOrganization,
+		updateShareOrganization,
+		deleteShareLink,
+	},
 }));
 
 const organization = {
@@ -39,6 +48,7 @@ describe("ShareManagementPage", () => {
 			data: structuredClone(organization),
 		});
 		updateShareOrganization.mockResolvedValue({ data: organization });
+		deleteShareLink.mockResolvedValue({ data: { success: true } });
 	});
 
 	it("shows root folders and unclassified shares", async () => {
@@ -130,5 +140,37 @@ describe("ShareManagementPage", () => {
 			name: "项目乙",
 			parentId: "root-folder",
 		});
+	});
+
+	it("opens details for a share", async () => {
+		const wrapper = await mountWithContext(ShareManagementPage, {
+			initialRoute: "/my-bucket/shares",
+		});
+		await flushPromises();
+
+		wrapper.vm.openShareDetails(wrapper.vm.shares[0]);
+
+		expect(wrapper.vm.detailsDialog).toBe(true);
+		expect(wrapper.vm.detailsShare.shareId).toBe("share1");
+	});
+
+	it("deletes a share and reloads folders", async () => {
+		const wrapper = await mountWithContext(ShareManagementPage, {
+			initialRoute: "/my-bucket/shares",
+		});
+		await flushPromises();
+		const share = wrapper.vm.shares[0];
+		wrapper.vm.q.dialog = vi.fn(() => ({
+			onOk: (callback: () => Promise<void>) => callback(),
+		}));
+		listShares.mockClear();
+		getShareOrganization.mockClear();
+
+		wrapper.vm.deleteShare(share);
+		await flushPromises();
+
+		expect(deleteShareLink).toHaveBeenCalledWith("my-bucket", "share1");
+		expect(listShares).toHaveBeenCalledWith("my-bucket");
+		expect(getShareOrganization).toHaveBeenCalledWith("my-bucket");
 	});
 });

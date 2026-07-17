@@ -2,7 +2,7 @@
   <q-page class="share-management q-pa-md">
     <div class="share-header">
       <div>
-        <div class="text-h5 text-weight-medium">分享管理</div>
+        <div class="text-h5 text-weight-medium">分享文件夹</div>
         <div class="text-grey-7 q-mt-xs">分类仅用于管理，不会改变分享链接或原文件。</div>
       </div>
       <q-btn color="primary" icon="create_new_folder" label="新建管理文件夹" @click="openCreateFolder" />
@@ -72,8 +72,10 @@
                 <span v-if="share.hasPassword"> · 有密码</span>
               </div>
             </div>
+            <q-btn flat dense icon="info" label="详情" @click="openShareDetails(share)" />
             <q-btn flat dense icon="content_copy" label="复制链接" @click="copyLink(share.shareUrl)" />
             <q-btn flat dense icon="drive_file_move" label="移动" @click="openMoveShare(share)" />
+            <q-btn flat dense icon="delete" color="negative" label="删除" @click="deleteShare(share)" />
           </q-card-section>
         </q-card>
       </div>
@@ -111,6 +113,38 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="detailsDialog">
+      <q-card style="min-width: 420px; max-width: 680px">
+        <q-card-section class="row items-center">
+          <div class="text-h6">分享详情</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section v-if="detailsShare" class="q-gutter-y-sm">
+          <div><span class="text-grey-7">文件：</span>{{ detailsShare.key }}</div>
+          <div class="row items-center no-wrap">
+            <span class="text-grey-7">链接：</span>
+            <a :href="detailsShare.shareUrl" target="_blank" class="ellipsis col text-primary">
+              {{ detailsShare.shareUrl }}
+            </a>
+            <q-btn flat round dense icon="content_copy" @click="copyLink(detailsShare.shareUrl)" />
+          </div>
+          <div><span class="text-grey-7">状态：</span>{{ detailsShare.isExpired ? '已过期' : '有效' }}</div>
+          <div><span class="text-grey-7">密码：</span>{{ detailsShare.hasPassword ? '已设置' : '未设置' }}</div>
+          <div>
+            <span class="text-grey-7">下载次数：</span>
+            {{ detailsShare.currentDownloads }}{{ detailsShare.maxDownloads ? `/${detailsShare.maxDownloads}` : '/不限' }}
+          </div>
+          <div><span class="text-grey-7">创建时间：</span>{{ formatDate(detailsShare.createdAt) }}</div>
+          <div><span class="text-grey-7">到期时间：</span>{{ detailsShare.expiresAt ? formatDate(detailsShare.expiresAt) : '永久' }}</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="关闭" v-close-popup />
+          <q-btn flat color="negative" icon="delete" label="删除分享" @click="deleteShare(detailsShare)" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -133,6 +167,8 @@ export default defineComponent({
 		movingShares: [],
 		moveTarget: null,
 		selectedShareIds: [],
+		detailsDialog: false,
+		detailsShare: null,
 	}),
 	computed: {
 		selectedBucket: function () {
@@ -309,6 +345,42 @@ export default defineComponent({
 			await navigator.clipboard.writeText(url);
 			this.q.notify({ type: "positive", message: "分享链接已复制" });
 		},
+		openShareDetails: function (share) {
+			this.detailsShare = share;
+			this.detailsDialog = true;
+		},
+		deleteShare: function (share) {
+			if (!share) return;
+			this.q
+				.dialog({
+					title: "删除分享链接",
+					message: `确定要删除“${share.key}”的这个分享链接吗？`,
+					cancel: true,
+					persistent: true,
+				})
+				.onOk(async () => {
+					try {
+						await apiHandler.deleteShareLink(
+							this.selectedBucket,
+							share.shareId,
+						);
+						this.detailsDialog = false;
+						this.detailsShare = null;
+						this.selectedShareIds = this.selectedShareIds.filter(
+							(shareId) => shareId !== share.shareId,
+						);
+						await this.load();
+						this.q.notify({ type: "positive", message: "分享链接已删除" });
+					} catch (error) {
+						this.q.notify({
+							type: "negative",
+							message: "删除分享链接失败",
+							caption: error.response?.data?.message || error.message,
+						});
+					}
+				});
+		},
+		formatDate: (timestamp) => new Date(timestamp).toLocaleString(),
 	},
 	created() {
 		this.load();

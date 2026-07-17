@@ -54,12 +54,12 @@ describe("LeftSidebar", () => {
 		expect(wrapper.text()).toContain("文件");
 	});
 
-	it("shows Share Management button", async () => {
+	it("shows Share Folders button", async () => {
 		const wrapper = await mountWithContext(LeftSidebar, {
 			initialRoute: "/my-bucket/files",
 		});
 
-		expect(wrapper.text()).toContain("分享管理");
+		expect(wrapper.text()).toContain("分享文件夹");
 	});
 
 	it("shows Email nav when emailRouting is enabled", async () => {

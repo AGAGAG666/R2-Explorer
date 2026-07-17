@@ -45,7 +45,7 @@
 
       <q-btn class="q-mb-sm" @click="gotoFiles" color="blue" icon="folder_copy" label="文件" stack />
       <q-btn v-if="mainStore.config && mainStore.config.emailRouting !== false" class="q-mb-sm" @click="gotoEmail" color="blue" icon="email" label="邮件" stack />
-      <q-btn class="q-mb-sm" @click="gotoShares" color="blue" icon="share" label="分享管理" stack />
+      <q-btn class="q-mb-sm" @click="gotoShares" color="blue" icon="folder_shared" label="分享文件夹" stack />
 
       <q-btn class="q-mb-sm q-mt-auto q-mb-0" @click="infoPopup=true" color="secondary" icon="question_mark"
              label="信息"

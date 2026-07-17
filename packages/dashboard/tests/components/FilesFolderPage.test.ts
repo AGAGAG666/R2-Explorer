@@ -214,16 +214,17 @@ describe("FilesFolderPage", () => {
 		);
 	});
 
-	it("opens the standalone share management page", async () => {
+	it("opens the all-shares dialog from the manage shares button", async () => {
 		const wrapper = await mountPage();
-		const routerPush = vi.spyOn(wrapper.vm.$router, "push");
+		const shareFile = wrapper.vm.$refs.shareFile as any;
+		const openManageShares = vi.spyOn(shareFile, "openManageShares");
+		const manageButton = wrapper
+			.findAllComponents({ name: "QBtn" })
+			.find((button) => button.props("label") === "管理分享");
 
-		wrapper.vm.openShareManagement();
+		await manageButton!.trigger("click");
 
-		expect(routerPush).toHaveBeenCalledWith({
-			name: "shares-home",
-			params: { bucket: "my-bucket" },
-		});
+		expect(openManageShares).toHaveBeenCalledWith();
 	});
 
 	it("marks files that have share links", async () => {
