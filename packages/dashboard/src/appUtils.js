@@ -206,13 +206,25 @@ export const apiHandler = {
 		});
 	},
 	multipartComplete: (file, key, bucket, parts, uploadId, signal) => {
-		return api.post(`/buckets/${bucket}/multipart/complete`, {
-			key: encode(key),
-			uploadId,
-			parts,
-		}, { signal });
+		return api.post(
+			`/buckets/${bucket}/multipart/complete`,
+			{
+				key: encode(key),
+				uploadId,
+				parts,
+			},
+			{ signal },
+		);
 	},
-	multipartUpload: (uploadId, partNumber, bucket, key, chunk, callback, signal) => {
+	multipartUpload: (
+		uploadId,
+		partNumber,
+		bucket,
+		key,
+		chunk,
+		callback,
+		signal,
+	) => {
 		return api.post(`/buckets/${bucket}/multipart/upload`, chunk, {
 			signal,
 			params: {

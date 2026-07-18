@@ -179,9 +179,14 @@ export default {
 			this.activeTaskId = task.id;
 			this.activeController = controller;
 			try {
-				await uploadTask(task, file, (loaded, total) => {
-					this.progress[task.id] = loaded / total;
-				}, { signal: controller.signal });
+				await uploadTask(
+					task,
+					file,
+					(loaded, total) => {
+						this.progress[task.id] = loaded / total;
+					},
+					{ signal: controller.signal },
+				);
 				delete this.filesByTask[task.id];
 				this.q.notify({ type: "positive", message: `${task.name} 上传完成` });
 			} catch (error) {
