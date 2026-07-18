@@ -70,6 +70,7 @@ describe("UploadTasksPage", () => {
 			task,
 			file,
 			expect.any(Function),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
 		);
 	});
 
@@ -99,6 +100,7 @@ describe("UploadTasksPage", () => {
 			task,
 			file,
 			expect.any(Function),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
 		);
 	});
 

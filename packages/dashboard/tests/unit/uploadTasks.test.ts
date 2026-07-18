@@ -115,6 +115,7 @@ describe("uploadTasks", () => {
 			"data.bin",
 			expect.any(Blob),
 			expect.any(Function),
+		undefined,
 		);
 		expect(multipartComplete).toHaveBeenCalledWith(
 			file,
@@ -125,7 +126,28 @@ describe("uploadTasks", () => {
 				{ partNumber: 2, etag: "etag-2" },
 			],
 			"upload-1",
+			undefined,
 		);
 		expect(loadUploadTasks("bucket-a")[0].status).toBe("completed");
+	});
+
+	it("pauses and records a network interruption without losing parts", async () => {
+		const file = new File(["abcdef"], "data.bin", { lastModified: 123 });
+		const [created] = createUploadTasks("bucket-a", "", [file]);
+		const task = updateUploadTask("bucket-a", created.id, {
+			chunkSize: 3,
+			uploadId: "upload-1",
+			parts: [{ partNumber: 1, etag: "etag-1" }],
+		});
+		multipartUpload.mockRejectedValue(new Error("Network Error"));
+
+		await expect(uploadTask(task, file)).rejects.toMatchObject({
+			uploadInterrupted: true,
+		});
+		expect(loadUploadTasks("bucket-a")[0]).toMatchObject({
+			status: "paused",
+			parts: [{ partNumber: 1, etag: "etag-1" }],
+			error: "网络连接中断，已保存确认完成的分片",
+		});
 	});
 });

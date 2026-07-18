@@ -93,6 +93,7 @@ export default {
 		filesByTask: {},
 		progress: {},
 		activeTaskId: null,
+		activeController: null,
 		pendingTask: null,
 	}),
 	computed: {
@@ -165,22 +166,42 @@ export default {
 		},
 		async startTask(task) {
 			if (this.activeTaskId) return;
+			if (!navigator.onLine) {
+				this.q.notify({
+					type: "warning",
+					message: "当前网络未连接，请联网后再继续上传",
+				});
+				return;
+			}
 			const file = this.filesByTask[task.id];
 			if (!file) return;
+			const controller = new AbortController();
 			this.activeTaskId = task.id;
+			this.activeController = controller;
 			try {
 				await uploadTask(task, file, (loaded, total) => {
 					this.progress[task.id] = loaded / total;
-				});
+				}, { signal: controller.signal });
 				delete this.filesByTask[task.id];
 				this.q.notify({ type: "positive", message: `${task.name} 上传完成` });
 			} catch (error) {
-				this.q.notify({ type: "negative", message: `${task.name} 上传已暂停` });
+				this.q.notify({
+					type: error.uploadInterrupted ? "warning" : "negative",
+					message: error.uploadInterrupted
+						? `${task.name} 已因网络中断暂停，断点已保存`
+						: `${task.name} 上传已暂停`,
+				});
 			} finally {
-				this.activeTaskId = null;
-				this.reloadTasks();
-				this.startNextWaitingTask();
+				if (this.activeController === controller) {
+					this.activeTaskId = null;
+					this.activeController = null;
+					this.reloadTasks();
+					this.startNextWaitingTask();
+				}
 			}
+		},
+		handleOffline() {
+			this.activeController?.abort();
 		},
 		startNextWaitingTask() {
 			if (this.activeTaskId) return;
@@ -240,6 +261,13 @@ export default {
 			if (file) this.filesByTask[task.id] = file;
 		}
 		this.startNextWaitingTask();
+	},
+	mounted() {
+		window.addEventListener("offline", this.handleOffline);
+	},
+	beforeUnmount() {
+		window.removeEventListener("offline", this.handleOffline);
+		this.activeController?.abort();
 	},
 	setup() {
 		return { mainStore: useMainStore(), q: useQuasar() };

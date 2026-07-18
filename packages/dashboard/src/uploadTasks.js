@@ -101,7 +101,12 @@ export function matchesUploadTask(task, file) {
 	);
 }
 
-export async function uploadTask(task, file, onProgress = () => {}) {
+export async function uploadTask(
+	task,
+	file,
+	onProgress = () => {},
+	options = {},
+) {
 	if (!matchesUploadTask(task, file)) {
 		throw new Error("请选择名称、大小和修改时间均相同的原文件");
 	}
@@ -113,9 +118,13 @@ export async function uploadTask(task, file, onProgress = () => {}) {
 
 	try {
 		if (file.size === 0) {
-			await apiHandler.uploadObjects(file, task.key, task.bucket, (event) => {
-				onProgress(event.loaded, file.size);
-			});
+			await apiHandler.uploadObjects(
+				file,
+				task.key,
+				task.bucket,
+				(event) => onProgress(event.loaded, file.size),
+				options.signal,
+			);
 			onProgress(0, 0);
 			return updateUploadTask(task.bucket, task.id, {
 				status: "completed",
@@ -128,6 +137,7 @@ export async function uploadTask(task, file, onProgress = () => {}) {
 				file,
 				task.key,
 				task.bucket,
+				options.signal,
 			);
 			task = updateUploadTask(task.bucket, task.id, {
 				uploadId: response.data.uploadId,
@@ -155,6 +165,7 @@ export async function uploadTask(task, file, onProgress = () => {}) {
 				task.key,
 				file.slice(start, end),
 				(event) => onProgress(start + event.loaded, file.size),
+				options.signal,
 			);
 			completedParts.set(partNumber, response.data);
 			task = updateUploadTask(task.bucket, task.id, {
@@ -170,6 +181,7 @@ export async function uploadTask(task, file, onProgress = () => {}) {
 			task.bucket,
 			task.parts,
 			task.uploadId,
+			options.signal,
 		);
 
 		onProgress(file.size, file.size);
@@ -178,10 +190,17 @@ export async function uploadTask(task, file, onProgress = () => {}) {
 			completedAt: Date.now(),
 		});
 	} catch (error) {
+		const interrupted =
+			error.code === "ERR_CANCELED" ||
+			error.message === "Network Error" ||
+			(typeof navigator !== "undefined" && !navigator.onLine);
 		updateUploadTask(task.bucket, task.id, {
 			status: "paused",
-			error: error.response?.data?.message || error.message,
+			error: interrupted
+				? "网络连接中断，已保存确认完成的分片"
+				: error.response?.data?.message || error.message,
 		});
+		error.uploadInterrupted = interrupted;
 		throw error;
 	}
 }

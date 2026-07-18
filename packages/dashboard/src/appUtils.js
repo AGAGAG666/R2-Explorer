@@ -192,8 +192,9 @@ export const apiHandler = {
 			return mapFile(resp.data, prefix);
 		}
 	},
-	multipartCreate: (file, key, bucket) => {
+	multipartCreate: (file, key, bucket, signal) => {
 		return api.post(`/buckets/${bucket}/multipart/create`, null, {
+			signal,
 			params: {
 				key: encode(key),
 				httpMetadata: encode(
@@ -204,15 +205,16 @@ export const apiHandler = {
 			},
 		});
 	},
-	multipartComplete: (file, key, bucket, parts, uploadId) => {
+	multipartComplete: (file, key, bucket, parts, uploadId, signal) => {
 		return api.post(`/buckets/${bucket}/multipart/complete`, {
 			key: encode(key),
 			uploadId,
 			parts,
-		});
+		}, { signal });
 	},
-	multipartUpload: (uploadId, partNumber, bucket, key, chunk, callback) => {
+	multipartUpload: (uploadId, partNumber, bucket, key, chunk, callback, signal) => {
 		return api.post(`/buckets/${bucket}/multipart/upload`, chunk, {
+			signal,
 			params: {
 				key: encode(key),
 				uploadId,
@@ -224,10 +226,11 @@ export const apiHandler = {
 			},
 		});
 	},
-	uploadObjects: async (file, key, bucket, callback) => {
+	uploadObjects: async (file, key, bucket, callback, signal) => {
 		return await retryWithBackoff(
 			async () => {
 				return await api.post(`/buckets/${bucket}/upload`, file, {
+					signal,
 					params: {
 						key: encode(key),
 						httpMetadata: encode(
